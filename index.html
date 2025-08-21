@@ -130,20 +130,27 @@
                 </div>
                 
                 <div class="filters">
-                    <select class="filter-select">
-                        <option>Tüm Türler</option>
-                        <option>Gözlem</option>
-                        <option>Seminer</option>
-                        <option>Atölye</option>
-                        <option>Sosyal</option>
+                    <select class="filter-select" id="event-type-filter">
+                        <option value="">Tüm Türler</option>
+                        <option value="gozlem">Gözlem</option>
+                        <option value="seminer">Seminer</option>
+                        <option value="atolye">Atölye</option>
+                        <option value="sosyal">Sosyal</option>
                     </select>
-                    <select class="filter-select">
-                        <option>Tüm Aylar</option>
-                        <option>Ocak</option>
-                        <option>Şubat</option>
-                        <option>Mart</option>
+                    <select class="filter-select" id="event-month-filter">
+                        <option value="">Tüm Aylar</option>
+                        <option value="1">Ocak</option>
+                        <option value="2">Şubat</option>
+                        <option value="3">Mart</option>
                     </select>
-                    <input type="text" placeholder="Etkinlik ara..." class="search-input">
+                    <select class="filter-select" id="event-sponsor-filter">
+                        <option value="">Tüm Sponsorlar</option>
+                        <option value="ABC Optik">ABC Optik</option>
+                        <option value="TÜBİTAK">TÜBİTAK</option>
+                        <option value="XYZ Teknoloji">XYZ Teknoloji</option>
+                    </select>
+                    <input type="text" placeholder="Etkinlik ara..." class="search-input" id="event-search">
+                    <button class="btn btn-secondary" id="export-calendar">📅 Takvime Ekle (.ics)</button>
                 </div>
 
                 <div class="content-grid">
@@ -170,35 +177,23 @@
                     </div>
                 </div>
 
-                <div class="kanban-board">
-                    <div class="kanban-column">
+                <div class="kanban-board" id="social-media-board">
+                    <div class="kanban-column" data-status="taslak">
                         <h3>📝 Taslak</h3>
-                        <div class="kanban-items">
-                            <div class="kanban-item">
-                                <h4>Mars Karşıtlığı Paylaşımı</h4>
-                                <p>Instagram & TikTok</p>
-                                <small>Oluşturan: Ahmet Y.</small>
-                            </div>
+                        <div class="kanban-items" id="social-taslak">
+                            <!-- Dinamik içerik -->
                         </div>
                     </div>
-                    <div class="kanban-column">
+                    <div class="kanban-column" data-status="planlandi">
                         <h3>📅 Planlı</h3>
-                        <div class="kanban-items">
-                            <div class="kanban-item">
-                                <h4>Geminids Duyurusu</h4>
-                                <p>Tüm Platformlar</p>
-                                <small>Tarih: 10 Aralık</small>
-                            </div>
+                        <div class="kanban-items" id="social-planlandi">
+                            <!-- Dinamik içerik -->
                         </div>
                     </div>
-                    <div class="kanban-column">
+                    <div class="kanban-column" data-status="yayinlandi">
                         <h3>✅ Yayınlandı</h3>
-                        <div class="kanban-items">
-                            <div class="kanban-item">
-                                <h4>Satürn Halkaları</h4>
-                                <p>YouTube Video</p>
-                                <small>1.2K görüntülenme</small>
-                            </div>
+                        <div class="kanban-items" id="social-yayinlandi">
+                            <!-- Dinamik içerik -->
                         </div>
                     </div>
                 </div>
@@ -232,10 +227,10 @@
                         <div class="calendar-day">10</div>
                         <div class="calendar-day">11</div>
                         <div class="calendar-day">12</div>
-                        <div class="calendar-day has-event" data-event="geminids">13
+                        <div class="calendar-day has-event" data-event="geminids" data-id="1">13
                             <div class="event-dot">🌟</div>
                         </div>
-                        <div class="calendar-day has-event" data-event="geminids">14
+                        <div class="calendar-day has-event" data-event="geminids" data-id="1">14
                             <div class="event-dot">🌟</div>
                         </div>
                         <div class="calendar-day">15</div>
@@ -275,8 +270,10 @@
                         <p><strong>Kategori:</strong> Topluluk Belgeleri</p>
                         <p><strong>Durum:</strong> <span class="status pending">Onay Bekliyor</span></p>
                         <div class="card-actions">
-                            <button class="btn btn-sm">İncele</button>
-                            <button class="btn btn-sm btn-outline">İndir</button>
+                            <button class="btn btn-sm" onclick="viewDocument(1)">İncele</button>
+                            <button class="btn btn-sm btn-outline" onclick="downloadDocument(1)">İndir</button>
+                            <button class="btn btn-sm btn-success" onclick="approveDocument(1)" data-role="admin">✓ Onayla</button>
+                            <button class="btn btn-sm btn-danger" onclick="rejectDocument(1)" data-role="admin">✗ Reddet</button>
                         </div>
                     </div>
                 </div>
@@ -296,11 +293,26 @@
                     <div class="card project-card">
                         <h3>Mobil Gözlemevi Projesi</h3>
                         <p><strong>Tür:</strong> Donanım</p>
-                        <p><strong>Bütçe:</strong> ₺25,000 / ₺30,000</p>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 83%"></div>
+                        <div class="budget-info">
+                            <p><strong>Bütçe:</strong> ₺25,000 / ₺30,000</p>
+                            <div class="budget-bar">
+                                <div class="budget-fill" style="width: 83%"></div>
+                                <span class="budget-percentage">83%</span>
+                            </div>
                         </div>
-                        <p><strong>Ortaklar:</strong> TÜBİTAK, XYZ Teknoloji</p>
+                        <div class="progress-info">
+                            <p><strong>İlerleme:</strong></p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 83%"></div>
+                            </div>
+                        </div>
+                        <div class="partners-list">
+                            <p><strong>Ortaklar:</strong></p>
+                            <div class="partners-tags">
+                                <span class="partner-tag">TÜBİTAK</span>
+                                <span class="partner-tag">XYZ Teknoloji</span>
+                            </div>
+                        </div>
                         <div class="card-actions">
                             <button class="btn btn-sm">Düzenle</button>
                             <button class="btn btn-sm btn-outline">Detay</button>
@@ -338,14 +350,23 @@
                 <div class="members-grid">
                     <div class="member-card">
                         <div class="member-avatar">👤</div>
+                        <div class="risk-indicator normal">●</div>
                         <h3>Ahmet Yılmaz</h3>
                         <p><strong>Rol:</strong> Başkan</p>
                         <p><strong>Birim:</strong> Yönetim</p>
                         <p><strong>E-posta:</strong> ahmet@subuasto.edu.tr</p>
+                        <p><strong>Son İletişim:</strong> 2 gün önce</p>
                         <div class="card-actions">
-                            <button class="btn btn-sm">Düzenle</button>
-                            <button class="btn btn-sm btn-outline">İletişim</button>
+                            <button class="btn btn-sm" onclick="editMember(1)">Düzenle</button>
+                            <button class="btn btn-sm btn-outline" onclick="viewContactHistory(1)">İletişim Geçmişi</button>
                         </div>
+                    </div>
+                </div>
+
+                <div class="contact-logs-section">
+                    <h3>Firma İletişim Kayıtları</h3>
+                    <div class="contact-logs" id="contact-logs-list">
+                        <!-- Dinamik içerik -->
                     </div>
                 </div>
             </section>
@@ -356,6 +377,11 @@
                     <h2>Birimler</h2>
                     <div class="section-actions">
                         <button class="btn btn-primary">+ Birim Ekle</button>
+                        <div class="quick-filters">
+                            <button class="btn btn-sm btn-outline" onclick="applyQuickFilter('active-projects')">Aktif Projeli</button>
+                            <button class="btn btn-sm btn-outline" onclick="applyQuickFilter('high-activity')">Yüksek Aktivite</button>
+                            <button class="btn btn-sm btn-outline" onclick="applyQuickFilter('needs-attention')">Dikkat Gereken</button>
+                        </div>
                     </div>
                 </div>
 

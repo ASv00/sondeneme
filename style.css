@@ -1046,6 +1046,105 @@ body {
     color: var(--text-color);
 }
 
+/* New Component Styles */
+.budget-info {
+    margin: 12px 0;
+}
+
+.budget-bar {
+    position: relative;
+    height: 20px;
+    background: var(--background-color);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 4px 0;
+}
+
+.budget-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981, #059669);
+    transition: width 0.3s ease;
+}
+
+.budget-percentage {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.partners-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.partner-tag {
+    background: var(--primary-color);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+}
+
+.risk-indicator {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 1.2rem;
+}
+
+.contact-logs-section {
+    margin-top: calc(var(--spacing) * 2);
+    padding-top: calc(var(--spacing) * 2);
+    border-top: 1px solid var(--border-color);
+}
+
+.contact-log-item {
+    background: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: var(--spacing);
+    margin-bottom: 12px;
+}
+
+.quick-filters {
+    display: flex;
+    gap: 8px;
+    margin-left: 12px;
+}
+
+.btn-success {
+    background: #10b981;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #059669;
+}
+
+.btn-danger {
+    background: #ef4444;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+.contact-timeline p {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.contact-timeline p:last-child {
+    border-bottom: none;
+}
+
 /* Modal Styles */
 .modal-overlay {
     position: fixed;
