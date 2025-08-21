@@ -226,14 +226,17 @@ function createDatabaseTables() {
                 file_size INT,
                 mime_type VARCHAR(100),
                 version VARCHAR(10) DEFAULT '1.0',
-                status ENUM('taslak', 'inceleme', 'onaylandi', 'yayinlandi', 'arsivlendi') DEFAULT 'taslak',
+                status ENUM('taslak', 'inceleme', 'onay_bekliyor', 'onaylandi', 'reddedildi', 'yayinlandi', 'arsivlendi') DEFAULT 'taslak',
+                approval_status ENUM('bekliyor', 'onaylandi', 'reddedildi') DEFAULT 'bekliyor',
+                approved_by INT,
+                approved_at TIMESTAMP NULL,
+                rejection_reason TEXT,
                 approval_workflow JSON,
                 access_level ENUM('herkese_acik', 'uyeler', 'yoneticiler', 'gizli') DEFAULT 'uyeler',
                 related_event_id INT,
                 related_project_id INT,
                 tags JSON,
                 uploaded_by INT NOT NULL,
-                approved_by INT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 FOREIGN KEY (uploaded_by) REFERENCES users(id),
@@ -253,6 +256,8 @@ function createDatabaseTables() {
                 start_date DATE,
                 end_date DATE,
                 budget DECIMAL(12,2),
+                budget_total DECIMAL(12,2) DEFAULT 0,
+                budget_used DECIMAL(12,2) DEFAULT 0,
                 spent_budget DECIMAL(12,2) DEFAULT 0,
                 project_manager INT,
                 team_members JSON,
@@ -361,6 +366,19 @@ function createDatabaseTables() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 FOREIGN KEY (added_by) REFERENCES users(id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ",
+        
+        // Kütüphane etiketleri
+        'library_tags' => "
+            CREATE TABLE IF NOT EXISTS library_tags (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(100) NOT NULL UNIQUE,
+                category VARCHAR(50) DEFAULT 'genel',
+                usage_count INT DEFAULT 0,
+                created_by INT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (created_by) REFERENCES users(id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ",
         

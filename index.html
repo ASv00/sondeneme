@@ -263,19 +263,8 @@
                     </select>
                 </div>
 
-                <div class="content-grid">
-                    <div class="card document-card">
-                        <div class="document-icon">📄</div>
-                        <h3>2024 Faaliyet Raporu</h3>
-                        <p><strong>Kategori:</strong> Topluluk Belgeleri</p>
-                        <p><strong>Durum:</strong> <span class="status pending">Onay Bekliyor</span></p>
-                        <div class="card-actions">
-                            <button class="btn btn-sm" onclick="viewDocument(1)">İncele</button>
-                            <button class="btn btn-sm btn-outline" onclick="downloadDocument(1)">İndir</button>
-                            <button class="btn btn-sm btn-success" onclick="approveDocument(1)" data-role="admin">✓ Onayla</button>
-                            <button class="btn btn-sm btn-danger" onclick="rejectDocument(1)" data-role="admin">✗ Reddet</button>
-                        </div>
-                    </div>
+                <div class="content-grid" id="documents-grid">
+                    <!-- Dinamik içerik buraya yüklenecek -->
                 </div>
             </section>
 
@@ -289,35 +278,25 @@
                     </div>
                 </div>
 
+                <div class="filters">
+                    <select class="filter-select" id="project-status-filter">
+                        <option value="">Tüm Durumlar</option>
+                        <option value="planlama">Planlama</option>
+                        <option value="devam_ediyor">Devam Ediyor</option>
+                        <option value="beklemede">Beklemede</option>
+                        <option value="tamamlandi">Tamamlandı</option>
+                    </select>
+                    <select class="filter-select" id="project-type-filter">
+                        <option value="">Tüm Türler</option>
+                        <option value="bireysel">Bireysel</option>
+                        <option value="ortak">Ortak</option>
+                        <option value="kurumsal">Kurumsal</option>
+                    </select>
+                    <input type="text" placeholder="Proje ara..." class="search-input" id="project-search">
+                </div>
+
                 <div class="content-grid">
-                    <div class="card project-card">
-                        <h3>Mobil Gözlemevi Projesi</h3>
-                        <p><strong>Tür:</strong> Donanım</p>
-                        <div class="budget-info">
-                            <p><strong>Bütçe:</strong> ₺25,000 / ₺30,000</p>
-                            <div class="budget-bar">
-                                <div class="budget-fill" style="width: 83%"></div>
-                                <span class="budget-percentage">83%</span>
-                            </div>
-                        </div>
-                        <div class="progress-info">
-                            <p><strong>İlerleme:</strong></p>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 83%"></div>
-                            </div>
-                        </div>
-                        <div class="partners-list">
-                            <p><strong>Ortaklar:</strong></p>
-                            <div class="partners-tags">
-                                <span class="partner-tag">TÜBİTAK</span>
-                                <span class="partner-tag">XYZ Teknoloji</span>
-                            </div>
-                        </div>
-                        <div class="card-actions">
-                            <button class="btn btn-sm">Düzenle</button>
-                            <button class="btn btn-sm btn-outline">Detay</button>
-                        </div>
-                    </div>
+                    <!-- Dinamik içerik buraya yüklenecek -->
                 </div>
             </section>
 

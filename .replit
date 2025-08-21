@@ -14,3 +14,14 @@ publicDir = "dist"
 [[ports]]
 localPort = 5173
 externalPort = 80
+
+[workflows]
+
+[[workflows.workflow]]
+name = "PHP Server"
+author = 45579640
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd /tmp && php -S 0.0.0.0:8000 -t /home/runner/html-css-js-auto-refresh"
