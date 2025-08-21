@@ -124,14 +124,19 @@ function createDatabaseTables() {
                 full_name VARCHAR(255) NOT NULL,
                 role ENUM('baskan', 'mentor', 'birim_yoneticisi', 'uye', 'misafir') DEFAULT 'uye',
                 department VARCHAR(100),
+                department_id INT,
                 phone VARCHAR(20),
                 avatar_url VARCHAR(500),
                 is_active BOOLEAN DEFAULT TRUE,
                 email_verified BOOLEAN DEFAULT FALSE,
                 two_factor_enabled BOOLEAN DEFAULT FALSE,
+                two_factor_secret VARCHAR(32),
                 invite_code VARCHAR(50),
                 invited_by INT,
                 last_login TIMESTAMP NULL,
+                login_attempts INT DEFAULT 0,
+                locked_until TIMESTAMP NULL,
+                language_preference VARCHAR(5) DEFAULT 'tr',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 FOREIGN KEY (invited_by) REFERENCES users(id)
@@ -154,10 +159,12 @@ function createDatabaseTables() {
                 sponsor_company VARCHAR(255),
                 budget DECIMAL(10,2),
                 status ENUM('taslak', 'onaylandi', 'yayinlandi', 'iptal', 'tamamlandi') DEFAULT 'taslak',
+                reminder_at DATETIME,
                 created_by INT NOT NULL,
                 approved_by INT,
                 tags JSON,
                 metadata JSON,
+                is_archived BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 FOREIGN KEY (created_by) REFERENCES users(id),
@@ -254,6 +261,7 @@ function createDatabaseTables() {
                 progress_percentage INT DEFAULT 0,
                 priority ENUM('dusuk', 'orta', 'yuksek', 'acil') DEFAULT 'orta',
                 tags JSON,
+                is_archived BOOLEAN DEFAULT FALSE,
                 created_by INT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -270,6 +278,7 @@ function createDatabaseTables() {
                 description TEXT,
                 file_path VARCHAR(500) NOT NULL,
                 thumbnail_path VARCHAR(500),
+                preview_path VARCHAR(500),
                 file_type ENUM('image', 'video', 'audio', 'document') NOT NULL,
                 mime_type VARCHAR(100),
                 file_size INT,
@@ -280,11 +289,17 @@ function createDatabaseTables() {
                 tags JSON,
                 metadata JSON,
                 download_count INT DEFAULT 0,
+                version INT DEFAULT 1,
+                previous_version_id INT,
+                icc_profile_preserved BOOLEAN DEFAULT FALSE,
+                chunk_hash VARCHAR(64),
                 uploaded_by INT NOT NULL,
                 is_public BOOLEAN DEFAULT FALSE,
+                uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                FOREIGN KEY (uploaded_by) REFERENCES users(id)
+                FOREIGN KEY (uploaded_by) REFERENCES users(id),
+                FOREIGN KEY (previous_version_id) REFERENCES media_files(id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ",
         
@@ -297,11 +312,13 @@ function createDatabaseTables() {
                 content LONGTEXT NOT NULL,
                 excerpt TEXT,
                 featured_image VARCHAR(500),
+                category_id INT,
                 category VARCHAR(100),
                 tags JSON,
                 status ENUM('taslak', 'inceleme', 'yayinlandi', 'arsivlendi') DEFAULT 'taslak',
                 visibility ENUM('herkese_acik', 'uyeler', 'gizli') DEFAULT 'herkese_acik',
                 publish_date DATETIME,
+                published_at TIMESTAMP NULL,
                 author_id INT NOT NULL,
                 editor_id INT,
                 view_count INT DEFAULT 0,
@@ -309,6 +326,7 @@ function createDatabaseTables() {
                 comment_count INT DEFAULT 0,
                 seo_title VARCHAR(255),
                 seo_description VARCHAR(500),
+                is_archived BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 FOREIGN KEY (author_id) REFERENCES users(id),
@@ -327,17 +345,19 @@ function createDatabaseTables() {
                 file_path VARCHAR(500),
                 external_url VARCHAR(500),
                 description TEXT,
-                age_group ENUM('cocuk', 'genc', 'yetiskin', 'hepsi') DEFAULT 'hepsi',
+                age_group JSON,
                 difficulty_level ENUM('baslangic', 'orta', 'ileri') DEFAULT 'orta',
                 language VARCHAR(10) DEFAULT 'tr',
                 page_count INT,
                 duration INT,
                 category VARCHAR(100),
                 tags JSON,
+                custom_tags JSON,
                 is_available BOOLEAN DEFAULT TRUE,
                 download_count INT DEFAULT 0,
                 rating DECIMAL(3,2),
                 added_by INT NOT NULL,
+                is_archived BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 FOREIGN KEY (added_by) REFERENCES users(id)
@@ -355,7 +375,9 @@ function createDatabaseTables() {
                 assigned_to INT,
                 assigned_by INT NOT NULL,
                 department VARCHAR(100),
+                department_id INT,
                 due_date DATETIME,
+                reminder_at DATETIME,
                 estimated_hours INT,
                 actual_hours INT,
                 completion_percentage INT DEFAULT 0,
@@ -422,6 +444,110 @@ function createDatabaseTables() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 read_at TIMESTAMP NULL,
                 FOREIGN KEY (user_id) REFERENCES users(id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ",
+        
+        // Blog kategorileri
+        'blog_categories' => "
+            CREATE TABLE IF NOT EXISTS blog_categories (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(100) NOT NULL UNIQUE,
+                slug VARCHAR(100) NOT NULL UNIQUE,
+                description TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ",
+        
+        // Etkinlik katılımcıları
+        'event_participants' => "
+            CREATE TABLE IF NOT EXISTS event_participants (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                event_id INT NOT NULL,
+                user_id INT,
+                guest_name VARCHAR(255),
+                guest_email VARCHAR(255),
+                registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                attendance_status ENUM('kayitli', 'katildi', 'katilmadi') DEFAULT 'kayitli',
+                notes TEXT,
+                FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ",
+        
+        // Bütçe logları
+        'budget_logs' => "
+            CREATE TABLE IF NOT EXISTS budget_logs (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                project_id INT,
+                event_id INT,
+                amount DECIMAL(10,2) NOT NULL,
+                transaction_type ENUM('gelir', 'gider') NOT NULL,
+                category VARCHAR(100),
+                description TEXT,
+                receipt_file VARCHAR(500),
+                created_by INT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (project_id) REFERENCES projects(id),
+                FOREIGN KEY (event_id) REFERENCES events(id),
+                FOREIGN KEY (created_by) REFERENCES users(id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ",
+        
+        // Sosyal medya istatistikleri
+        'social_stats' => "
+            CREATE TABLE IF NOT EXISTS social_stats (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                post_id INT NOT NULL,
+                platform VARCHAR(50) NOT NULL,
+                likes_count INT DEFAULT 0,
+                comments_count INT DEFAULT 0,
+                shares_count INT DEFAULT 0,
+                reach_count INT DEFAULT 0,
+                impressions_count INT DEFAULT 0,
+                recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (post_id) REFERENCES social_media_posts(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ",
+        
+        // Dosya chunk'ları
+        'file_chunks' => "
+            CREATE TABLE IF NOT EXISTS file_chunks (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                upload_id VARCHAR(64) NOT NULL,
+                chunk_number INT NOT NULL,
+                chunk_data LONGBLOB,
+                chunk_hash VARCHAR(64),
+                uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX(upload_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ",
+        
+        // CSV import logları
+        'import_logs' => "
+            CREATE TABLE IF NOT EXISTS import_logs (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                table_name VARCHAR(100) NOT NULL,
+                file_name VARCHAR(255) NOT NULL,
+                total_rows INT,
+                successful_rows INT,
+                failed_rows INT,
+                errors JSON,
+                imported_by INT NOT NULL,
+                imported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (imported_by) REFERENCES users(id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ",
+        
+        // Birimler tablosu
+        'departments' => "
+            CREATE TABLE IF NOT EXISTS departments (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(100) NOT NULL UNIQUE,
+                description TEXT,
+                manager_id INT,
+                is_active BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (manager_id) REFERENCES users(id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         "
     ];
