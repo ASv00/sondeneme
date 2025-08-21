@@ -1,0 +1,46 @@
+run = "vite"
+entrypoint = "index.html"
+hidden = [".config"]
+modules = ["nodejs-18", "web"]
+
+[nix]
+channel = "stable-23_05"
+
+[deployment]
+deploymentTarget = "static"
+build = ["npm", "run", "build"]
+publicDir = "dist"
+
+[[ports]]
+localPort = 5173
+externalPort = 80
+
+[workflows]
+runButton = "PHP Server"
+
+[[workflows.workflow]]
+name = "PHP Server"
+author = 45579640
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "php -S 0.0.0.0:8000"
+
+[[workflows.workflow]]
+name = "PHP Development Server"
+author = 45579640
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 -m http.server 8000"
+
+[[workflows.workflow]]
+name = "PHP Local Server"
+author = 45579640
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "php -S 0.0.0.0:8000"

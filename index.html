@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUBÜ ASTO - İçerik Yönetim Sistemi</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <h1>SUBÜ ASTO</h1>
+                <span>İçerik Yönetim Sistemi</span>
+            </div>
+            <div class="header-actions">
+                <button id="themeToggle" class="theme-toggle">🌙</button>
+                <div class="user-menu">
+                    <span id="userInfo">admin@subuasto.edu.tr</span>
+                    <button class="logout-btn">Çıkış</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <nav class="nav-menu">
+                <ul>
+                    <li><a href="#dashboard" class="nav-link active" data-section="dashboard">📊 Genel Bakış</a></li>
+                    <li><a href="#events" class="nav-link" data-section="events">📅 Etkinlikler & Programlar</a></li>
+                    <li><a href="#social-media" class="nav-link" data-section="social-media">📱 Sosyal Medya</a></li>
+                    <li><a href="#sky-calendar" class="nav-link" data-section="sky-calendar">🌌 Gök Takvimi</a></li>
+                    <li><a href="#documents" class="nav-link" data-section="documents">📋 Resmi Belgeler</a></li>
+                    <li><a href="#projects" class="nav-link" data-section="projects">💼 Projeler & Bütçe</a></li>
+                    <li><a href="#members" class="nav-link" data-section="members">👥 Üyeler & İletişim</a></li>
+                    <li><a href="#departments" class="nav-link" data-section="departments">🏢 Birimler</a></li>
+                    <li><a href="#media" class="nav-link" data-section="media">🎬 Medya Arşivi</a></li>
+                    <li><a href="#blog" class="nav-link" data-section="blog">✍️ Blog</a></li>
+                    <li><a href="#library" class="nav-link" data-section="library">📚 Kütüphane & Kaynaklar</a></li>
+                    <li><a href="#tasks" class="nav-link" data-section="tasks">✅ Görev Yönetimi</a></li>
+                    <li><a href="#reports" class="nav-link" data-section="reports">📈 Raporlar & Analizler</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="content-section active">
+                <h2>Genel Bakış</h2>
+                <div class="dashboard-grid">
+                    <div class="dashboard-card expandable" data-type="events">
+                        <div class="card-header">
+                            <h3>📅 Yaklaşan Etkinlikler</h3>
+                            <span class="card-count">5</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="expanded-content" style="display: none;">
+                                <div class="item-list" id="upcoming-events-list">
+                                    <!-- Dinamik içerik buraya yüklenecek -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card expandable" data-type="documents">
+                        <div class="card-header">
+                            <h3>📋 Bekleyen Onaylar</h3>
+                            <span class="card-count">3</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="expanded-content" style="display: none;">
+                                <div class="item-list" id="pending-approvals-list">
+                                    <!-- Dinamik içerik buraya yüklenecek -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card expandable" data-type="members">
+                        <div class="card-header">
+                            <h3>👥 Aktif Üyeler</h3>
+                            <span class="card-count">24</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="expanded-content" style="display: none;">
+                                <div class="item-list" id="active-members-list">
+                                    <!-- Dinamik içerik buraya yüklenecek -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3>💰 Aktif Projeler</h3>
+                            <span class="card-count">8</span>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3>📱 Bu Ay Paylaşımlar</h3>
+                            <span class="card-count">12</span>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3>✅ Tamamlanan Görevler</h3>
+                            <span class="card-count">15</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Events Section -->
+            <section id="events" class="content-section">
+                <div class="section-header">
+                    <h2>Etkinlikler & Programlar</h2>
+                    <div class="section-actions">
+                        <button class="btn btn-primary" data-action="quick-add" data-type="event">⚡ Hızlı Etkinlik Ekle</button>
+                        <button class="btn btn-secondary" data-action="csv-import">📊 CSV İçe Aktar</button>
+                    </div>
+                </div>
+
+                <div class="filters">
+                    <select class="filter-select" id="event-type-filter">
+                        <option value="">Tüm Türler</option>
+                        <option value="gozlem">Gözlem</option>
+                        <option value="seminer">Seminer</option>
+                        <option value="atolye">Atölye</option>
+                        <option value="sosyal">Sosyal</option>
+                    </select>
+                    <select class="filter-select" id="event-month-filter">
+                        <option value="">Tüm Aylar</option>
+                        <option value="1">Ocak</option>
+                        <option value="2">Şubat</option>
+                        <option value="3">Mart</option>
+                        <option value="4">Nisan</option>
+                        <option value="5">Mayıs</option>
+                        <option value="6">Haziran</option>
+                        <option value="7">Temmuz</option>
+                        <option value="8">Ağustos</option>
+                        <option value="9">Eylül</option>
+                        <option value="10">Ekim</option>
+                        <option value="11">Kasım</option>
+                        <option value="12">Aralık</option>
+                    </select>
+                    <select class="filter-select" id="event-sponsor-filter">
+                        <option value="">Tüm Sponsorlar</option>
+                        <!-- Dinamik olarak doldurulacak -->
+                    </select>
+                    <input type="text" placeholder="Etkinlik ara..." class="search-input" id="event-search">
+                    <button class="btn btn-secondary" id="export-calendar-btn" onclick="exportEventsToCalendar()">📅 Takvime Ekle (.ics)</button>
+                </div>
+
+                <div class="content-grid">
+                    <div class="card">
+                        <h3>Geminids Meteor Yağmuru Gözlemi</h3>
+                        <p><strong>Tarih:</strong> 13-14 Aralık 2024</p>
+                        <p><strong>Yer:</strong> Uludağ Gözlemevi</p>
+                        <p><strong>Sponsor:</strong> ABC Optik</p>
+                        <div class="card-actions">
+                            <button class="btn btn-sm">Düzenle</button>
+                            <button class="btn btn-sm btn-outline">Detay</button>
+                            <button class="btn btn-sm btn-archive" data-id="1" data-type="event">🗄️ Arşivle</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Social Media Section -->
+            <section id="social-media" class="content-section">
+                <div class="section-header">
+                    <h2>Sosyal Medya</h2>
+                    <div class="section-actions">
+                        <button class="btn btn-primary" onclick="showNewSocialPostForm()">+ Yeni İçerik</button>
+                        <button class="btn btn-secondary" onclick="exportSocialMediaReport()">📈 Rapor</button>
+                    </div>
+                </div>
+
+                <div class="social-filters">
+                    <select class="filter-select" id="social-platform-filter">
+                        <option value="">Tüm Platformlar</option>
+                        <option value="Instagram">Instagram</option>
+                        <option value="TikTok">TikTok</option>
+                        <option value="YouTube">YouTube</option>
+                        <option value="Twitter">Twitter</option>
+                        <option value="Facebook">Facebook</option>
+                        <option value="LinkedIn">LinkedIn</option>
+                    </select>
+                    <input type="text" class="search-input" id="social-search" placeholder="İçerik ara...">
+                    <button class="btn btn-sm" onclick="refreshSocialBoard()">🔄 Yenile</button>
+                </div>
+
+                <div class="kanban-board" id="social-media-board">
+                    <div class="kanban-column" data-status="taslak">
+                        <h3>📝 Taslak <span class="post-count" id="taslak-count">(0)</span></h3>
+                        <div class="kanban-items" id="social-taslak" ondrop="dropSocialPost(event)" ondragover="allowDrop(event)">
+                            <!-- Dinamik içerik -->
+                        </div>
+                        <button class="btn btn-sm btn-outline add-post-btn" onclick="showNewSocialPostForm('taslak')">+ Taslak Ekle</button>
+                    </div>
+                    <div class="kanban-column" data-status="planlandi">
+                        <h3>📅 Planlı <span class="post-count" id="planlandi-count">(0)</span></h3>
+                        <div class="kanban-items" id="social-planlandi" ondrop="dropSocialPost(event)" ondragover="allowDrop(event)">
+                            <!-- Dinamik içerik -->
+                        </div>
+                        <button class="btn btn-sm btn-outline add-post-btn" onclick="showNewSocialPostForm('planlandi')">+ Planlama</button>
+                    </div>
+                    <div class="kanban-column" data-status="yayinlandi">
+                        <h3>✅ Yayınlandı <span class="post-count" id="yayinlandi-count">(0)</span></h3>
+                        <div class="kanban-items" id="social-yayinlandi" ondrop="dropSocialPost(event)" ondragover="allowDrop(event)">
+                            <!-- Dinamik içerik -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sky Calendar Section -->
+            <section id="sky-calendar" class="content-section">
+                <div class="section-header">
+                    <h2>Gök Takvimi</h2>
+                    <div class="section-actions">
+                        <select class="filter-select">
+                            <option>Aralık 2024</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="calendar-grid">
+                    <div class="calendar-header">
+                        <div>Pzt</div><div>Sal</div><div>Çar</div><div>Per</div><div>Cum</div><div>Cmt</div><div>Paz</div>
+                    </div>
+                    <div class="calendar-body">
+                        <div class="calendar-day" data-day="1">1</div>
+                        <div class="calendar-day" data-day="2">2</div>
+                        <div class="calendar-day" data-day="3">3</div>
+                        <div class="calendar-day" data-day="4">4</div>
+                        <div class="calendar-day" data-day="5">5</div>
+                        <div class="calendar-day" data-day="6">6</div>
+                        <div class="calendar-day" data-day="7">7</div>
+                        <div class="calendar-day" data-day="8">8</div>
+                        <div class="calendar-day" data-day="9">9</div>
+                        <div class="calendar-day" data-day="10">10</div>
+                        <div class="calendar-day" data-day="11">11</div>
+                        <div class="calendar-day" data-day="12">12</div>
+                        <div class="calendar-day has-event" data-day="13" data-event-id="1" data-event-type="meteor_yagmuru" onclick="calendarDayClick(this)">13
+                            <div class="event-dot">🌟</div>
+                        </div>
+                        <div class="calendar-day has-event" data-day="14" data-event-id="1" data-event-type="meteor_yagmuru" onclick="calendarDayClick(this)">14
+                            <div class="event-dot">🌟</div>
+                        </div>
+                        <div class="calendar-day" data-day="15">15</div>
+                        <div class="calendar-day" data-day="16">16</div>
+                        <div class="calendar-day" data-day="17">17</div>
+                        <div class="calendar-day" data-day="18">18</div>
+                        <div class="calendar-day" data-day="19">19</div>
+                        <div class="calendar-day has-event" data-day="20" data-event-id="2" data-event-type="gezegen_yakinlasma" onclick="calendarDayClick(this)">20
+                            <div class="event-dot">🪐</div>
+                        </div>
+                        <div class="calendar-day has-event" data-day="21" data-event-id="3" data-event-type="dolunay" onclick="calendarDayClick(this)">21
+                            <div class="event-dot">🌕</div>
+                        </div>
+                        <div class="calendar-day" data-day="22">22</div>
+                        <div class="calendar-day" data-day="23">23</div>
+                        <div class="calendar-day" data-day="24">24</div>
+                        <div class="calendar-day" data-day="25">25</div>
+                        <div class="calendar-day" data-day="26">26</div>
+                        <div class="calendar-day" data-day="27">27</div>
+                        <div class="calendar-day" data-day="28">28</div>
+                        <div class="calendar-day" data-day="29">29</div>
+                        <div class="calendar-day" data-day="30">30</div>
+                        <div class="calendar-day" data-day="31">31</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Documents Section -->
+            <section id="documents" class="content-section">
+                <div class="section-header">
+                    <h2>Resmi Belgeler</h2>
+                    <div class="section-actions">
+                        <button class="btn btn-primary">+ Yeni Belge</button>
+                        <button class="btn btn-secondary">📁 Kategoriler</button>
+                    </div>
+                </div>
+
+                <div class="filters">
+                    <select class="filter-select" id="document-category-filter">
+                        <option value="">Tüm Kategoriler</option>
+                        <option value="yonetmelik">Yönetmelik</option>
+                        <option value="protokol">Protokol</option>
+                        <option value="rapor">Rapor</option>
+                        <option value="plan">Plan</option>
+                        <option value="butce">Bütçe</option>
+                        <option value="diger">Diğer</option>
+                    </select>
+                    <select class="filter-select" id="document-status-filter">
+                        <option value="">Tüm Durumlar</option>
+                        <option value="onay_bekliyor">Onay Bekliyor</option>
+                        <option value="onaylandi">Onaylandı</option>
+                        <option value="reddedildi">Reddedildi</option>
+                        <option value="yayinlandi">Yayınlandı</option>
+                        <option value="taslak">Taslak</option>
+                    </select>
+                    <input type="text" placeholder="Belge ara..." class="search-input" id="document-search">
+                </div>
+
+                <div class="content-grid" id="documents-grid">
+                    <!-- Dinamik içerik buraya yüklenecek -->
+                </div>
+            </section>
+
+            <!-- Projects Section -->
+            <section id="projects" class="content-section">
+                <div class="section-header">
+                    <h2>Projeler & Bütçe</h2>
+                    <div class="section-actions">
+                        <button class="btn btn-primary">+ Yeni Proje</button>
+                        <button class="btn btn-secondary">💰 Bütçe Özeti</button>
+                    </div>
+                </div>
+
+                <div class="filters">
+                    <select class="filter-select" id="project-status-filter">
+                        <option value="">Tüm Durumlar</option>
+                        <option value="planlama">Planlama</option>
+                        <option value="devam_ediyor">Devam Ediyor</option>
+                        <option value="beklemede">Beklemede</option>
+                        <option value="tamamlandi">Tamamlandı</option>
+                    </select>
+                    <select class="filter-select" id="project-type-filter">
+                        <option value="">Tüm Türler</option>
+                        <option value="bireysel">Bireysel</option>
+                        <option value="ortak">Ortak</option>
+                        <option value="kurumsal">Kurumsal</option>
+                    </select>
+                    <input type="text" placeholder="Proje ara..." class="search-input" id="project-search">
+                </div>
+
+                <div class="content-grid" id="projects-grid">
+                    <!-- Dinamik içerik buraya yüklenecek -->
+                </div>
+            </section>
+
+            <!-- Members Section -->
+            <section id="members" class="content-section">
+                <div class="section-header">
+                    <h2>Üyeler & İletişim</h2>
+                    <div class="section-actions">
+                        <button class="btn btn-primary">+ Üye Davet Et</button>
+                        <button class="btn btn-secondary">📊 İstatistikler</button>
+                    </div>
+                </div>
+
+                <div class="filters">
+                    <select class="filter-select">
+                        <option>Tüm Roller</option>
+                        <option>Başkan</option>
+                        <option>Mentor</option>
+                        <option>Birim Yöneticisi</option>
+                        <option>Üye</option>
+                    </select>
+                    <select class="filter-select">
+                        <option>Tüm Birimler</option>
+                        <option>Yönetim</option>
+                        <option>Sosyal Medya</option>
+                        <option>Organizasyon</option>
+                    </select>
+                </div>
+
+                <div class="members-grid">
+                    <div class="member-card">
+                        <div class="member-avatar">👤</div>
+                        <div class="risk-indicator normal">●</div>
+                        <h3>Ahmet Yılmaz</h3>
+                        <p><strong>Rol:</strong> Başkan</p>
+                        <p><strong>Birim:</strong> Yönetim</p>
+                        <p><strong>E-posta:</strong> ahmet@subuasto.edu.tr</p>
+                        <p><strong>Son İletişim:</strong> 2 gün önce</p>
+                        <div class="card-actions">
+                            <button class="btn btn-sm" onclick="editMember(1)">Düzenle</button>
+                            <button class="btn btn-sm btn-outline" onclick="viewContactHistory(1)">İletişim Geçmişi</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="contact-logs-section">
+                    <h3>Firma İletişim Kayıtları</h3>
+                    <div class="contact-logs" id="contact-logs-list">
+                        <!-- Dinamik içerik -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Departments Section -->
+            <section id="departments" class="content-section">
+                <div class="section-header">
+                    <h2>Birimler</h2>
+                    <div class="section-actions">
+                        <button class="btn btn-primary">+ Birim Ekle</button>
+                        <div class="filter-shortcuts">
+                            <button class="btn btn-sm btn-outline" onclick="applyDepartmentShortcut('active-projects')">🟢 Aktif Projeli</button>
+                            <button class="btn btn-sm btn-outline" onclick="applyDepartmentShortcut('high-activity')">🔥 Yüksek Aktivite</button>
+                            <button class="btn btn-sm btn-outline" onclick="applyDepartmentShortcut('needs-attention')">⚠️ Dikkat Gereken</button>
+                            <button class="btn btn-sm btn-outline" onclick="applyDepartmentShortcut('low-member-count')">👥 Az Üyeli</button>
+                            <button class="btn btn-sm btn-outline" onclick="applyDepartmentShortcut('high-budget')">💰 Yüksek Bütçeli</button>
+                            <button class="btn btn-sm btn-secondary" onclick="clearDepartmentFilters()">🔄 Tümü</button>
+                            <button class="btn btn-sm btn-secondary" onclick="saveDepartmentFilterShortcut()">💾 Kısayol Kaydet</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filters">
+                    <select class="filter-select" id="department-status-filter">
+                        <option value="">Tüm Durumlar</option>
+                        <option value="aktif">Aktif</option>
+                        <option value="pasif">Pasif</option>
+                        <option value="yeniden_yapilandiriliyor">Yeniden Yapılandırılıyor</option>
+                    </select>
+                    <select class="filter-select" id="department-size-filter">
+                        <option value="">Üye Sayısı</option>
+                        <option value="small">Küçük (1-5)</option>
+                        <option value="medium">Orta (6-15)</option>
+                        <option value="large">Büyük (16+)</option>
+                    </select>
+                    <select class="filter-select" id="department-budget-filter">
+                        <option value="">Bütçe Durumu</option>
+                        <option value="low">Düşük (0-5K)</option>
+                        <option value="medium">Orta (5K-20K)</option>
+                        <option value="high">Yüksek (20K+)</option>
+                    </select>
+                    <input type="text" class="search-input" id="department-search" placeholder="Birim ara...">
+                </div>
+
+                <div class="saved-shortcuts" id="saved-shortcuts-container" style="display: none;">
+                    <h4>Kayıtlı Kısayollar:</h4>
+                    <div id="saved-shortcuts-list">
+                        <!-- Dinamik kısayollar -->
+                    </div>
+                </div>
+
+                <div class="departments-grid" id="departments-grid">
+                    <div class="department-card" data-status="aktif" data-member-count="5" data-budget="15000" data-active-projects="3">
+                        <h3>🏛️ Yönetim</h3>
+                        <p>Topluluk yönetimi ve karar alma süreçleri</p>
+                        <p><strong>Üye Sayısı:</strong> <span class="member-count">5</span></p>
+                        <p><strong>Sorumlu:</strong> Ahmet Yılmaz</p>
+                        <p><strong>Aktif Projeler:</strong> <span class="active-projects">3</span></p>
+                        <p><strong>Bütçe:</strong> ₺<span class="budget">15,000</span></p>
+                        <div class="activity-indicator high">🔥</div>
+                    </div>
+                    <div class="department-card" data-status="aktif" data-member-count="8" data-budget="8000" data-active-projects="2">
+                        <h3>📱 Sosyal Medya</h3>
+                        <p>İçerik üretimi ve sosyal medya yönetimi</p>
+                        <p><strong>Üye Sayısı:</strong> <span class="member-count">8</span></p>
+                        <p><strong>Sorumlu:</strong> Zeynep Kaya</p>
+                        <p><strong>Aktif Projeler:</strong> <span class="active-projects">2</span></p>
+                        <p><strong>Bütçe:</strong> ₺<span class="budget">8,000</span></p>
+                        <div class="activity-indicator medium">⚡</div>
+                    </div>
+                    <div class="department-card" data-status="aktif" data-member-count="12" data-budget="25000" data-active-projects="5">
+                        <h3>🔧 Organizasyon</h3>
+                        <p>Etkinlik planlama ve organizasyon</p>
+                        <p><strong>Üye Sayısı:</strong> <span class="member-count">12</span></p>
+                        <p><strong>Sorumlu:</strong> Mehmet Demir</p>
+                        <p><strong>Aktif Projeler:</strong> <span class="active-projects">5</span></p>
+                        <p><strong>Bütçe:</strong> ₺<span class="budget">25,000</span></p>
+                        <div class="activity-indicator high">🔥</div>
+                    </div>
+                    <div class="department-card" data-status="pasif" data-member-count="3" data-budget="2000" data-active-projects="0">
+                        <h3>💻 Teknik</h3>
+                        <p>Web sitesi ve teknik altyapı</p>
+                        <p><strong>Üye Sayısı:</strong> <span class="member-count">3</span></p>
+                        <p><strong>Sorumlu:</strong> Ayşe Çelik</p>
+                        <p><strong>Aktif Projeler:</strong> <span class="active-projects">0</span></p>
+                        <p><strong>Bütçe:</strong> ₺<span class="budget">2,000</span></p>
+                        <div class="activity-indicator low">⚠️</div>
+                    </div>
+                    <div class="department-card" data-status="aktif" data-member-count="6" data-budget="12000" data-active-projects="2">
+                        <h3>📚 Eğitim</h3>
+                        <p>Eğitim içerikleri ve kurs organizasyonu</p>
+                        <p><strong>Üye Sayısı:</strong> <span class="member-count">6</span></p>
+                        <p><strong>Sorumlu:</strong> Can Özdemir</p>
+                        <p><strong>Aktif Projeler:</strong> <span class="active-projects">2</span></p>
+                        <p><strong>Bütçe:</strong> ₺<span class="budget">12,000</span></p>
+                        <div class="activity-indicator medium">⚡</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Media Archive Section -->
+            <section id="media" class="content-section">
+                <div class="section-header">
+                    <h2>Medya Arşivi</h2>
+                    <div class="media-filters">
+                        <select id="media-category-filter" onchange="loadMediaFiles()">
+                            <option value="">Tüm Kategoriler</option>
+                            <option value="genel">Genel</option>
+                            <option value="etkinlik">Etkinlik</option>
+                            <option value="proje">Proje</option>
+                            <option value="afiş">Afiş</option>
+                        </select>
+                        <select id="media-type-filter" onchange="loadMediaFiles()">
+                            <option value="">Tüm Dosya Türleri</option>
+                            <option value="image">Resim</option>
+                            <option value="video">Video</option>
+                            <option value="audio">Ses</option>
+                            <option value="document">Belge</option>
+                        </select>
+                        <input type="date" id="media-start-date" onchange="loadMediaFiles()" placeholder="Başlangıç Tarihi">
+                        <input type="date" id="media-end-date" onchange="loadMediaFiles()" placeholder="Bitiş Tarihi">
+                        <button onclick="clearMediaFilters()" class="btn btn-secondary">Filtreleri Temizle</button>
+                    </div>
+                    <div class="section-actions">
+                        <button class="btn btn-primary" onclick="showChunkedUploadModal()">+ Dosya Yükle</button>
+                        <button class="btn btn-secondary">📁 Klasörler</button>
+                        <button class="btn btn-secondary" onclick="showVersionHistory()">🕒 Sürüm Geçmişi</button>
+                    </div>
+                </div>
+
+                <div class="filters">
+                    <div class="filter-row">
+                        <select class="filter-select" id="media-type-filter">
+                            <option value="">Tüm Türler</option>
+                            <option value="image">Fotoğraf</option>
+                            <option value="video">Video</option>
+                            <option value="audio">Ses</option>
+                            <option value="document">Belge</option>
+                        </select>
+                        <select class="filter-select" id="media-category-filter">
+                            <option value="">Tüm Kategoriler</option>
+                            <option value="etkinlik">Etkinlik</option>
+                            <option value="proje">Proje</option>
+                            <option value="genel">Genel</option>
+                            <option value="afiş">Afiş</option>
+                            <option value="sosyal">Sosyal Medya</option>
+                            <option value="egitim">Eğitim</option>
+                            <option value="toplanti">Toplantı</option>
+                            <option value="gozlem">Gözlem</option>
+                        </select>
+                    </div>
+                    <div class="filter-row">
+                        <div class="date-filter-group">
+                            <label for="media-date-from">Yükleme Tarihi:</label>
+                            <input type="date" class="filter-input" id="media-date-from" title="Başlangıç Tarihi">
+                            <span class="date-separator">-</span>
+                            <input type="date" class="filter-input" id="media-date-to" title="Bitiş Tarihi">
+                            <button class="btn btn-sm btn-secondary" id="clear-date-filter" onclick="clearMediaDateFilters()">Temizle</button>
+                        </div>
+                        <input type="text" class="search-input" id="media-search" placeholder="Dosya ara...">
+                    </div>
+                    <div class="filter-summary" id="media-filter-summary" style="display: none;">
+                        <span class="filter-count">0 dosya gösteriliyor</span>
+                        <button class="btn btn-sm btn-outline" onclick="clearAllMediaFilters()">Tüm Filtreleri Temizle</button>
+                    </div>
+                </div>
+
+                <div class="media-grid" id="media-grid">
+                    <!-- Dinamik içerik -->
+                </div>
+            </section>
+
+            <!-- Blog Section -->
+            <section id="blog" class="content-section">
+                <div class="section-header">
+                    <h2>Blog</h2>
+                    <div class="section-actions">
+                        <button class="btn btn-primary">+ Yeni Yazı</button>
+                        <button class="btn btn-secondary" onclick="manageBlogCategories()">📂 Kategoriler</button>
+                        <button class="btn btn-secondary" onclick="showArchivedBlogs()">🗄️ Arşiv</button>
+                    </div>
+                </div>
+
+                <div class="filters">
+                    <div class="filter-row">
+                        <select class="filter-select" id="blog-category-filter">
+                            <option value="">Tüm Kategoriler</option>
+                            <option value="Rehber">Rehber</option>
+                            <option value="Eğitim">Eğitim</option>
+                            <option value="Etkinlik">Etkinlik</option>
+                            <option value="Teknoloji">Teknoloji</option>
+                            <option value="Araştırma">Araştırma</option>
+                            <option value="Gözlem">Gözlem</option>
+                            <option value="Duyuru">Duyuru</option>
+                            <option value="Proje">Proje</option>
+                        </select>
+                        <select class="filter-select" id="blog-status-filter">
+                            <option value="">Tüm Durumlar</option>
+                            <option value="taslak">Taslak</option>
+                            <option value="inceleme">İnceleme</option>
+                            <option value="yayinlandi">Yayınlandı</option>
+                            <option value="arsivlendi">Arşivlendi</option>
+                        </select>
+                        <input type="text" class="search-input" id="blog-search" placeholder="Başlık veya içerik ara...">
+                    </div>
+                    <div class="filter-row">
+                        <div class="date-filter-group">
+                            <label for="blog-date-from">Yayın Tarihi:</label>
+                            <input type="date" class="filter-input" id="blog-date-from" title="Başlangıç Tarihi">
+                            <span class="date-separator">-</span>
+                            <input type="date" class="filter-input" id="blog-date-to" title="Bitiş Tarihi">
+                            <button class="btn btn-sm btn-secondary" onclick="clearBlogDateFilters()">Temizle</button>
+                        </div>
+                        <div class="filter-actions">
+                            <button class="btn btn-sm btn-outline" onclick="clearBlogFilters()">Tüm Filtreleri Temizle</button>
+                            <span class="filter-results" id="blog-filter-results" style="display: none;">
+                                <span id="blog-results-count">0</span> yazı gösteriliyor
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-grid" id="blog-grid">
+                    <!-- Dinamik içerik -->
+                </div>
+            </section>
+
+            <!-- Library Section -->
+            <section id="library" class="content-section">
+                <div class="section-header">
+                    <h2>Kütüphane & Kaynaklar</h2>
+                    <div class="section-actions">
+                        <button class="btn btn-primary" onclick="showNewResourceForm()">+ Kaynak Ekle</button>
+                        <button class="btn btn-secondary" onclick="manageLibraryTags()">🏷️ Etiket Yönetimi</button>
+                        <button class="btn btn-secondary" onclick="showArchivedResources()">🗄️ Arşiv</button>
+                    </div>
+                </div>
+
+                <div class="filters">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Yaş Grupları:</label>
+                            <div class="checkbox-group" id="age-group-filters">
+                                <label><input type="checkbox" value="cocuk"> Çocuk (6-12)</label>
+                                <label><input type="checkbox" value="genc"> Genç (13-18)</label>
+                                <label><input type="checkbox" value="yetiskin"> Yetişkin (18+)</label>
+                            </div>
+                        </div>
+                        <select class="filter-select" id="library-type-filter">
+                            <option value="">Tüm Türler</option>
+                            <option value="kitap">Kitap</option>
+                            <option value="dergi">Dergi</option>
+                            <option value="makale">Makale</option>
+                            <option value="pdf">PDF</option>
+                            <option value="video">Video</option>
+                            <option value="podcast">Podcast</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="tag-input-container">
+                            <label for="library-tag-input">Etiketler:</label>
+                            <div class="tag-input-wrapper">
+                                <input type="text" id="library-tag-input" class="tag-input" placeholder="Etiket ara veya ekle...">
+                                <div class="tag-suggestions" id="tag-suggestions"></div>
+                            </div>
+                            <div class="selected-tags" id="library-selected-tags"></div>
+                        </div>
+                        <input type="text" class="search-input" id="library-search" placeholder="Kaynak ara...">
+                    </div>
+                </div>
+
+                <div class="filter-summary" id="library-filter-summary" style="display: none;">
+                    <span class="filter-count">0 kaynak gösteriliyor</span>
+                    <button class="btn btn-sm btn-outline" onclick="clearLibraryFilters()">Filtreleri Temizle</button>
+                </div>
+
+                <div class="content-grid" id="library-grid">
+                    <!-- Dinamik içerik -->
+                </div>
+            </section>
+
+            <!-- Tasks Section -->
+            <section id="tasks" class="content-section">
+                <div class="section-header">
+                    <h2>Görev Yönetimi</h2>
+                    <div class="section-actions">
+                        <button class="btn btn-primary" onclick="showTaskCreationModal()">+ Yeni Görev</button>
+                        <button class="btn btn-secondary" onclick="showTaskCalendar()">📅 Takvim Görünümü</button>
+                    </div>
+                </div>
+
+                <div class="filters">
+                    <select class="filter-select" id="task-assignee-filter">
+                        <option value="">Tüm Atananlar</option>
+                        <option value="1">Ahmet Yılmaz</option>
+                        <option value="2">Zeynep Kaya</option>
+                    </select>
+                    <select class="filter-select" id="task-department-filter">
+                        <option value="">Tüm Birimler</option>
+                        <option value="yonetim">Yönetim</option>
+                        <option value="sosyal">Sosyal Medya</option>
+                        <option value="organizasyon">Organizasyon</option>
+                    </select>
+                    <select class="filter-select" id="task-priority-filter">
+                        <option value="">Tüm Öncelikler</option>
+                        <option value="acil">Acil</option>
+                        <option value="yuksek">Yüksek</option>
+                        <option value="orta">Orta</option>
+                        <option value="dusuk">Düşük</option>
+                    </select>
+                </div>
+
+                <div class="kanban-board" id="tasks-kanban">
+                    <!-- Dinamik içerik -->
+                </div>
+
+                <!-- Task Creation Modal -->
+                <div id="task-modal" class="modal-overlay" style="display: none;">
+                    <div class="modal">
+                        <div class="modal-header">
+                            <h3>Yeni Görev Oluştur</h3>
+                            <button class="modal-close" onclick="closeTaskModal()">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="task-form">
+                                <div class="form-group">
+                                    <label>Görev Başlığı: *</label>
+                                    <input type="text" name="title" required placeholder="Görev başlığını girin">
+                                </div>
+                                <div class="form-group">
+                                    <label>Açıklama:</label>
+                                    <textarea name="description" rows="3" placeholder="Görev detaylarını açıklayın"></textarea>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Atanan Kişi: *</label>
+                                        <select name="assigned_to" id="task-assigned-to" required>
+                                            <option value="">Kişi seçin...</option>
+                                            <option value="1">Ahmet Yılmaz (Başkan)</option>
+                                            <option value="2">Zeynep Kaya (Mentor)</option>
+                                            <option value="3">Mehmet Demir (Üye)</option>
+                                            <option value="4">Ayşe Çelik (Üye)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Birim:</label>
+                                        <select name="department_id" id="task-department">
+                                            <option value="">Birim seçin...</option>
+                                            <option value="1">Yönetim</option>
+                                            <option value="2">Sosyal Medya</option>
+                                            <option value="3">Organizasyon</option>
+                                            <option value="4">Teknik</option>
+                                            <option value="5">Eğitim</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Bitiş Tarihi: *</label>
+                                        <input type="datetime-local" name="due_date" id="task-due-date" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Hatırlatma:</label>
+                                        <input type="datetime-local" name="reminder_at" id="task-reminder">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Öncelik:</label>
+                                        <select name="priority">
+                                            <option value="dusuk">Düşük</option>
+                                            <option value="orta" selected>Orta</option>
+                                            <option value="yuksek">Yüksek</option>
+                                            <option value="acil">Acil</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Tahmini Süre (saat):</label>
+                                        <input type="number" name="estimated_hours" min="1" max="100" placeholder="Örn: 8">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Etiketler:</label>
+                                    <input type="text" name="tags" placeholder="etiket1, etiket2, etiket3">
+                                    <small>Virgülle ayırarak birden fazla etiket ekleyebilirsiniz</small>
+                                </div>
+                                <div class="modal-actions">
+                                    <button type="submit" class="btn btn-primary">Görev Oluştur</button>
+                                    <button type="button" class="btn btn-secondary" onclick="closeTaskModal()">İptal</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reports Section -->
+            <section id="reports" class="content-section">
+                <div class="section-header">
+                    <h2>📊 Raporlar ve Analiz</h2>
+                    <button class="btn btn-outline" onclick="showBackupExportModal()" title="Yedekleme & Dışa Aktarma">
+                        💾 Yedekle & Dışa Aktar
+                    </button>
+                    <div class="report-controls">
+                    </div>
+                </div>
+
+                <div class="filters">
+                    <select class="filter-select" id="report-type-filter">
+                        <option value="all">Tüm Raporlar</option>
+                        <option value="events">Etkinlik Analizi</option>
+                        <option value="budget">Bütçe Analizi</option>
+                        <option value="social">Sosyal Medya</option>
+                        <option value="membership">Üyelik Analizi</option>
+                    </select>
+                    <input type="date" class="filter-input" id="report-date-from">
+                    <input type="date" class="filter-input" id="report-date-to">
+                    <button class="btn btn-sm" onclick="updateReports()">Güncelle</button>
+                </div>
+
+                <div class="reports-grid" id="reports-grid">
+                    <div class="report-card">
+                        <h3>📅 Etkinlik Katılım Analizi</h3>
+                        <canvas id="events-chart" width="350" height="220"></canvas>
+                        <p id="events-summary" class="chart-summary">Yükleniyor...</p>
+                    </div>
+
+                    <div class="report-card">
+                        <h3>🎯 Etkinlik Türleri Dağılımı</h3>
+                        <canvas id="event-types-chart" width="300" height="200"></canvas>
+                        <p class="chart-summary">Etkinlik türlerine göre dağılım</p>
+                    </div>
+
+                    <div class="report-card">
+                        <h3>💰 Bütçe Kullanım Durumu</h3>
+                        <canvas id="budget-chart" width="350" height="220"></canvas>
+                        <p id="budget-summary" class="chart-summary">Yükleniyor...</p>
+                    </div>
+
+                    <div class="report-card">
+                        <h3>🏷️ Harcama Kategorileri</h3>
+                        <canvas id="budget-categories-chart" width="300" height="200"></canvas>
+                        <p class="chart-summary">Kategori bazında harcama dağılımı</p>
+                    </div>
+
+                    <div class="report-card">
+                        <h3>📱 Sosyal Medya Etkileşimi</h3>
+                        <canvas id="social-chart" width="350" height="220"></canvas>
+                        <p id="social-summary" class="chart-summary">Yükleniyor...</p>
+                    </div>
+
+                    <div class="report-card">
+                        <h3>🌐 Platform Dağılımı</h3>
+                        <canvas id="social-platforms-chart" width="300" height="200"></canvas>
+                        <p class="chart-summary">Platformlara göre gönderi dağılımı</p>
+                    </div>
+
+                    <div class="report-card">
+                        <h3>👥 Üyelik Trendleri</h3>
+                        <canvas id="membership-chart" width="350" height="220"></canvas>
+                        <p id="membership-summary" class="chart-summary">Yükleniyor...</p>
+                    </div>
+
+                    <div class="report-card full-width">
+                        <h3>📊 Genel Performans Özeti</h3>
+                        <div class="metrics-grid">
+                            <div class="metric-item">
+                                <h4 id="total-events-metric">0</h4>
+                                <span>Toplam Etkinlik</span>
+                            </div>
+                            <div class="metric-item">
+                                <h4 id="total-participants-metric">0</h4>
+                                <span>Toplam Katılımcı</span>
+                            </div>
+                            <div class="metric-item">
+                                <h4 id="total-budget-metric">₺0</h4>
+                                <span>Kullanılan Bütçe</span>
+                            </div>
+                            <div class="metric-item">
+                                <h4 id="total-posts-metric">0</h4>
+                                <span>Sosyal Medya Gönderisi</span>
+                            </div>
+                            <div class="metric-item">
+                                <h4 id="total-engagement-metric">0</h4>
+                                <span>Toplam Etkileşim</span>
+                            </div>
+                            <div class="metric-item">
+                                <h4 id="active-members-metric">0</h4>
+                                <span>Aktif Üye</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <footer style="background: #1f2937; color: white; padding: 1rem 0; margin-top: 2rem;">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 1rem; text-align: center;">
+            <p>&copy; 2024 SUBÜ ASTO. Tüm hakları saklıdır.</p>
+            <div style="margin-top: 0.5rem;">
+                <a href="privacy.html" style="color: #93c5fd; text-decoration: none; margin: 0 1rem;">Gizlilik Politikası</a>
+                <a href="membership_agreement.html" style="color: #93c5fd; text-decoration: none; margin: 0 1rem;">Üyelik Sözleşmesi</a>
+                <a href="mailto:info@subuasto.edu.tr" style="color: #93c5fd; text-decoration: none; margin: 0 1rem;">İletişim</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
