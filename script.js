@@ -560,24 +560,72 @@ function setupEventFilters() {
             }
         }
     });
+    
+    // Load initial events and sponsors
+    loadEventsData();
+    loadSponsorsForFilter();
 }
 
-function filterEvents() {
+async function filterEvents() {
     const typeFilter = document.getElementById('event-type-filter')?.value || '';
     const monthFilter = document.getElementById('event-month-filter')?.value || '';
     const sponsorFilter = document.getElementById('event-sponsor-filter')?.value || '';
-    const searchTerm = document.getElementById('event-search')?.value.toLowerCase() || '';
+    const searchTerm = document.getElementById('event-search')?.value || '';
     
-    let filteredEvents = sampleData.events.filter(event => {
-        const matchesType = !typeFilter || event.type === typeFilter;
-        const matchesMonth = !monthFilter || new Date(event.date).getMonth() + 1 == monthFilter;
-        const matchesSponsor = !sponsorFilter || event.sponsor === sponsorFilter;
-        const matchesSearch = !searchTerm || event.title.toLowerCase().includes(searchTerm);
+    try {
+        const params = new URLSearchParams({
+            type: typeFilter,
+            month: monthFilter,
+            sponsor: sponsorFilter,
+            search: searchTerm
+        });
         
-        return matchesType && matchesMonth && matchesSponsor && matchesSearch;
-    });
-    
-    displayFilteredEvents(filteredEvents);
+        const response = await fetch(`/api/events.php?${params}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            displayFilteredEvents(data.events);
+        } else {
+            console.error('Events filtering error:', data.message);
+            displayFilteredEvents(sampleData.events);
+        }
+    } catch (error) {
+        console.error('Events API error:', error);
+        // Fallback to sample data
+        let filteredEvents = sampleData.events.filter(event => {
+            const matchesType = !typeFilter || event.type === typeFilter;
+            const matchesMonth = !monthFilter || new Date(event.date).getMonth() + 1 == monthFilter;
+            const matchesSponsor = !sponsorFilter || event.sponsor === sponsorFilter;
+            const matchesSearch = !searchTerm || event.title.toLowerCase().includes(searchTerm);
+            
+            return matchesType && matchesMonth && matchesSponsor && matchesSearch;
+        });
+        displayFilteredEvents(filteredEvents);
+    }
+}
+
+async function loadSponsorsForFilter() {
+    try {
+        const response = await fetch('/api/events.php');
+        const data = await response.json();
+        
+        if (data.success && data.sponsors) {
+            const sponsorFilter = document.getElementById('event-sponsor-filter');
+            if (sponsorFilter) {
+                // Clear existing options except first
+                sponsorFilter.innerHTML = '<option value="">Tüm Sponsorlar</option>';
+                
+                data.sponsors.forEach(sponsor => {
+                    const option = document.createElement('option');
+                    option.value = sponsor;
+                    option.textContent = sponsor;
+                    sponsorFilter.appendChild(option);
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error loading sponsors:', error);
+    }
 }
 
 function displayFilteredEvents(events) {
@@ -599,37 +647,55 @@ function displayFilteredEvents(events) {
 }
 
 // Calendar export function
-function exportToCalendar() {
-    const events = sampleData.events;
-    let icsContent = [
-        'BEGIN:VCALENDAR',
-        'VERSION:2.0',
-        'PRODID:-//SUBÜ ASTO//Events//TR'
-    ];
-    
-    events.forEach(event => {
-        const startDate = new Date(event.date).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-        icsContent.push(
-            'BEGIN:VEVENT',
-            `DTSTART:${startDate}`,
-            `DTEND:${startDate}`,
-            `SUMMARY:${event.title}`,
-            `DESCRIPTION:${event.title} - ${event.location}`,
-            `LOCATION:${event.location}`,
-            `UID:${event.id}@subuasto.edu.tr`,
-            'END:VEVENT'
-        );
-    });
-    
-    icsContent.push('END:VCALENDAR');
-    
-    const blob = new Blob([icsContent.join('\r\n')], { type: 'text/calendar' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'subu-asto-etkinlikler.ics';
-    a.click();
-    URL.revokeObjectURL(url);
+async function exportToCalendar() {
+    try {
+        const response = await fetch('/api/events.php?export=ics');
+        
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'subu-asto-etkinlikler.ics';
+            a.click();
+            URL.revokeObjectURL(url);
+        } else {
+            // Fallback to client-side generation
+            const events = sampleData.events;
+            let icsContent = [
+                'BEGIN:VCALENDAR',
+                'VERSION:2.0',
+                'PRODID:-//SUBÜ ASTO//Events//TR'
+            ];
+            
+            events.forEach(event => {
+                const startDate = new Date(event.date).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+                icsContent.push(
+                    'BEGIN:VEVENT',
+                    `DTSTART:${startDate}`,
+                    `DTEND:${startDate}`,
+                    `SUMMARY:${event.title}`,
+                    `DESCRIPTION:${event.title} - ${event.location}`,
+                    `LOCATION:${event.location}`,
+                    `UID:${event.id}@subuasto.edu.tr`,
+                    'END:VEVENT'
+                );
+            });
+            
+            icsContent.push('END:VCALENDAR');
+            
+            const blob = new Blob([icsContent.join('\r\n')], { type: 'text/calendar' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'subu-asto-etkinlikler.ics';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    } catch (error) {
+        console.error('Calendar export error:', error);
+        alert('Takvim dışa aktarılırken hata oluştu');
+    }
 }
 
 // Social media board functions
@@ -662,25 +728,138 @@ function setupSkyCalendarEvents() {
             }
         });
     });
+    
+    // Load sky events for current month
+    loadSkyCalendarEvents();
 }
 
-function openSkyEventDetail(id) {
-    const event = sampleData.skyEvents.find(e => e.id == id);
-    if (!event) return;
+async function loadSkyCalendarEvents() {
+    try {
+        const currentDate = new Date();
+        const params = new URLSearchParams({
+            month: currentDate.getMonth() + 1,
+            year: currentDate.getFullYear()
+        });
+        
+        const response = await fetch(`/api/sky_events.php?${params}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            updateCalendarWithSkyEvents(data.events);
+        }
+    } catch (error) {
+        console.error('Sky events loading error:', error);
+    }
+}
+
+function updateCalendarWithSkyEvents(events) {
+    // Clear existing event indicators
+    document.querySelectorAll('.calendar-day').forEach(day => {
+        day.classList.remove('has-event');
+        const existingDot = day.querySelector('.event-dot');
+        if (existingDot) existingDot.remove();
+    });
     
-    const content = `
-        <div class="detail-content">
-            <h3>${event.name}</h3>
-            <p><strong>Tarih:</strong> ${event.date}</p>
-            <p><strong>Tür:</strong> ${event.type}</p>
-            <div class="modal-actions">
-                <button class="btn btn-primary" onclick="editSkyEvent(${id})">Düzenle</button>
-                <button class="btn btn-secondary" onclick="closeModal()">Kapat</button>
-            </div>
-        </div>
-    `;
-    
-    createModal('Gök Olayı Detayları', content);
+    // Add event indicators
+    events.forEach(event => {
+        const eventDate = new Date(event.event_date);
+        const dayNumber = eventDate.getDate();
+        const dayElement = document.querySelector(`.calendar-day:nth-child(${dayNumber + 6})`); // Adjust for header
+        
+        if (dayElement) {
+            dayElement.classList.add('has-event');
+            dayElement.setAttribute('data-id', event.id);
+            
+            const eventDot = document.createElement('div');
+            eventDot.className = 'event-dot';
+            eventDot.textContent = getEventTypeIcon(event.event_type);
+            dayElement.appendChild(eventDot);
+        }
+    });
+}
+
+function getEventTypeIcon(eventType) {
+    const icons = {
+        'dolunay': '🌕',
+        'yeniay': '🌑',
+        'tutulma': '🌘',
+        'meteor_yagmuru': '🌟',
+        'gezegen_yakinlasma': '🪐',
+        'komedi': '☄️',
+        'diger': '🌌'
+    };
+    return icons[eventType] || '🌌';
+}
+
+async function openSkyEventDetail(id) {
+    try {
+        const response = await fetch(`/api/sky_events.php?id=${id}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const event = data.event;
+            const content = `
+                <div class="detail-content">
+                    <h3>${event.event_name}</h3>
+                    <p><strong>Tarih:</strong> ${formatDate(event.event_date)}</p>
+                    <p><strong>Tür:</strong> ${getEventTypeText(event.event_type)}</p>
+                    <p><strong>Görünürlük Zamanı:</strong> ${event.visibility_time || 'Belirsiz'}</p>
+                    <p><strong>Zorluk:</strong> ${getDifficultyText(event.observation_difficulty)}</p>
+                    ${event.description ? `<p><strong>Açıklama:</strong> ${event.description}</p>` : ''}
+                    ${event.required_equipment ? `<p><strong>Gerekli Ekipman:</strong> ${event.required_equipment}</p>` : ''}
+                    <div class="modal-actions">
+                        <button class="btn btn-primary" onclick="editSkyEvent(${id})">Düzenle</button>
+                        <button class="btn btn-secondary" onclick="closeModal()">Kapat</button>
+                    </div>
+                </div>
+            `;
+            
+            createModal('Gök Olayı Detayları', content);
+        } else {
+            alert('Gök olayı bulunamadı');
+        }
+    } catch (error) {
+        console.error('Sky event detail error:', error);
+        // Fallback to sample data
+        const event = sampleData.skyEvents.find(e => e.id == id);
+        if (event) {
+            const content = `
+                <div class="detail-content">
+                    <h3>${event.name}</h3>
+                    <p><strong>Tarih:</strong> ${event.date}</p>
+                    <p><strong>Tür:</strong> ${event.type}</p>
+                    <div class="modal-actions">
+                        <button class="btn btn-primary" onclick="editSkyEvent(${id})">Düzenle</button>
+                        <button class="btn btn-secondary" onclick="closeModal()">Kapat</button>
+                    </div>
+                </div>
+            `;
+            
+            createModal('Gök Olayı Detayları', content);
+        }
+    }
+}
+
+function getEventTypeText(eventType) {
+    const types = {
+        'dolunay': 'Dolunay',
+        'yeniay': 'Yeniay',
+        'tutulma': 'Tutulma',
+        'meteor_yagmuru': 'Meteor Yağmuru',
+        'gezegen_yakinlasma': 'Gezegen Yakınlaşması',
+        'komedi': 'Kuyruklu Yıldız',
+        'diger': 'Diğer'
+    };
+    return types[eventType] || eventType;
+}
+
+function getDifficultyText(difficulty) {
+    const difficulties = {
+        'kolay': 'Kolay',
+        'orta': 'Orta',
+        'zor': 'Zor'
+    };
+    return difficulties[difficulty] || difficulty;
 }
 
 // Document approval functions
