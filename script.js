@@ -3498,6 +3498,7 @@ function editSkyEvent(id) {
     closeModal();
     alert(`Gök olayı ${id} düzenleme formu açılacak`);
 }
+// Media Archive Functions
 function setupMediaFilters() {
     const typeFilter = document.getElementById('media-type-filter');
     const categoryFilter = document.getElementById('media-category-filter');
