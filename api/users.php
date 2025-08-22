@@ -13,12 +13,12 @@ try {
         case 'GET':
             if (isset($_GET['id'])) {
                 $user = $db->fetch(
-                    "SELECT id, full_name, email, risk_status FROM users WHERE id = :id",
+                     "SELECT id, full_name, email, role, risk_status FROM users WHERE id = :id",
                     ['id' => (int)$_GET['id']]
                 );
                 echo json_encode(['success' => true, 'user' => $user]);
             } else {
-                $users = $db->fetchAll("SELECT id, full_name, email, risk_status FROM users ORDER BY full_name ASC");
+               $users = $db->fetchAll("SELECT id, full_name, email, role, risk_status FROM users ORDER BY full_name ASC");
                 echo json_encode(['success' => true, 'users' => $users]);
             }
             break;
@@ -35,12 +35,18 @@ try {
             if (isset($data['risk_status'])) {
                 $fields['risk_status'] = $data['risk_status'];
             }
+            if (isset($data['role'])) {
+                $fields['role'] = $data['role'];
+            }
             if (empty($fields)) {
                 http_response_code(400);
                 echo json_encode(['success' => false, 'error' => 'No data to update']);
                 break;
             }
+        
+            $old = $db->fetch('SELECT role, risk_status FROM users WHERE id = :id', ['id' => $id]);
             $db->update('users', $fields, 'id = :id', ['id' => $id]);
+            logActivity($_SESSION['user_id'] ?? null, 'update_user', 'users', $id, $old, $fields);
             echo json_encode(['success' => true]);
             break;
         default:
