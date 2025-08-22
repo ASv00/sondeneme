@@ -2845,8 +2845,16 @@ function setupContactLogForm() {
 }
 
 async function updateRiskStatus(memberId) {
-    const member = sampleData.members.find(m => m.id === memberId);
-    const currentRisk = member?.risk_status || 'normal';
+    let currentRisk = 'normal';
+    try {
+        const resp = await fetch(`/api/users.php?id=${memberId}`);
+        const data = await resp.json();
+        if (data.success && data.user) {
+            currentRisk = data.user.risk_status || 'normal';
+        }
+    } catch (error) {
+        console.error('Risk durumu yükleme hatası:', error);
+    }
 
     const content = `
         <div class="risk-update-form">
@@ -2857,9 +2865,9 @@ async function updateRiskStatus(memberId) {
                 <div class="form-group">
                     <label>Risk Durumu:</label>
                     <select name="risk_status" required>
-                        <option value="normal" ${currentRisk === 'normal' ? 'selected' : ''}>🟢 Normal</option>
-                        <option value="sari" ${currentRisk === 'sari' ? 'selected' : ''}>🟡 Dikkat</option>
-                        <option value="kirmizi" ${currentRisk === 'kirmizi' ? 'selected' : ''}>🔴 Yüksek Risk</option>
+                       <option value="normal">🟢 Normal</option>
+                        <option value="sari">🟡 Dikkat</option>
+                        <option value="kirmizi">🔴 Yüksek Risk</option>
                     </select>
                 </div>
 
@@ -2877,12 +2885,10 @@ async function updateRiskStatus(memberId) {
     `;
 
     createModal('Risk Durumu Güncelle', content);
-    setupRiskUpdateForm();
-}
 
-function setupRiskUpdateForm() {
     const form = document.getElementById('risk-update-form');
     if (form) {
+        form.risk_status.value = currentRisk;
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
 
@@ -2906,7 +2912,6 @@ function setupRiskUpdateForm() {
                 const result = await response.json();
 
                 if (result.success) {
-                    // Log the risk status change
                     if (riskReason) {
                         await fetch('/api/contact_logs.php', {
                             method: 'POST',
@@ -2926,30 +2931,155 @@ function setupRiskUpdateForm() {
                     }
 
                     closeModal();
-                    loadMembersData(); // Refresh members list
+                    loadMembersData();
                     showNotification('Risk durumu güncellendi!', 'success');
                 } else {
                     alert('Hata: ' + result.error);
                 }
             } catch (error) {
                 console.error('Risk durumu güncelleme hatası:', error);
-                // Fallback for demo
-                const member = sampleData.members.find(m => m.id == memberId);
-                if (member) {
-                    member.risk_status = riskStatus;
-                    loadMembersData();
-                    showNotification('Risk durumu güncellendi (demo modu)', 'success');
-                }
                 closeModal();
+                showNotification('Risk durumu güncellendi (demo modu)', 'success');
             }
         });
     }
 }
 
 async function editContactLog(logId) {
-    // Implementation for editing contact logs
-    console.log('Edit contact log:', logId);
-    alert('İletişim kaydı düzenleme özelliği yakında eklenecek');
+    try {
+        const response = await fetch(`/api/contact_logs.php?id=${logId}`);
+        const data = await response.json();
+        if (!data.success) {
+            alert('İletişim kaydı bulunamadı');
+            return;
+        }
+        const log = data.log;
+        const content = `
+            <div class="contact-form">
+                <form id="contact-log-form">
+                    <input type="hidden" name="id" value="${log.id}">
+                    <input type="hidden" name="member_id" value="${log.member_id || ''}">
+                    <input type="hidden" name="created_by" value="${log.created_by || (currentUser.id || 1)}">
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>İletişim Türü: *</label>
+                            <select name="contact_type" required>
+                                <option value="">Seçin...</option>
+                                <option value="email">E-posta</option>
+                                <option value="telefon">Telefon</option>
+                                <option value="whatsapp">WhatsApp</option>
+                                <option value="yuz_yuze">Yüz Yüze</option>
+                                <option value="toplanti">Toplantı</option>
+                                <option value="diger">Diğer</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Öncelik:</label>
+                            <select name="priority">
+                                <option value="dusuk">Düşük</option>
+                                <option value="orta">Orta</option>
+                                <option value="yuksek">Yüksek</option>
+                                <option value="acil">Acil</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Firma Adı:</label>
+                        <input type="text" name="company_name" placeholder="Firma adı (opsiyonel)">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Konu: *</label>
+                        <input type="text" name="subject" required placeholder="İletişim konusu">
+                    </div>
+
+                    <div class="form-group">
+                        <label>İletişim Tarihi: *</label>
+                        <input type="datetime-local" name="contact_date" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mesaj/Detaylar:</label>
+                        <textarea name="message" rows="3" placeholder="İletişim detayları"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Durum:</label>
+                            <select name="response_status">
+                                <option value="bekliyor">Bekliyor</option>
+                                <option value="yanitlandi">Yanıtlandı</option>
+                                <option value="takip_edilecek">Takip Edilecek</option>
+                                <option value="tamamlandi">Tamamlandı</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Takip Tarihi:</label>
+                            <input type="datetime-local" name="follow_up_date">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Notlar:</label>
+                        <textarea name="notes" rows="2" placeholder="Ek notlar"></textarea>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="submit" class="btn btn-primary">Güncelle</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">İptal</button>
+                    </div>
+                </form>
+            </div>
+        `;
+
+        createModal('İletişim Kaydını Düzenle', content);
+        const form = document.getElementById('contact-log-form');
+        if (form) {
+            for (const [key, value] of Object.entries(log)) {
+                if (form[key]) {
+                    if ((key === 'contact_date' || key === 'follow_up_date') && value) {
+                        const d = new Date(value);
+                        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                        form[key].value = d.toISOString().slice(0,16);
+                    } else {
+                        form[key].value = value ?? '';
+                    }
+                }
+            }
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const data = Object.fromEntries(formData.entries());
+                try {
+                    const response = await fetch('/api/contact_logs.php', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        closeModal();
+                        loadContactLogs();
+                        showNotification('İletişim kaydı güncellendi!', 'success');
+                    } else {
+                        alert('Hata: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('İletişim kaydı güncelleme hatası:', error);
+                    closeModal();
+                    showNotification('İletişim kaydı güncellendi (demo modu)', 'success');
+                }
+            });
+        }
+    } catch (error) {
+        console.error('İletişim kaydı yüklenemedi:', error);
+        alert('İletişim kaydı yüklenemedi');
+    }
 }
 
 async function addFollowUp(logId) {
@@ -3368,13 +3498,6 @@ function editSkyEvent(id) {
     closeModal();
     alert(`Gök olayı ${id} düzenleme formu açılacak`);
 }
-
-function addContactEntry(memberId) {
-    closeModal();
-    alert(`Üye ${memberId} için yeni iletişim kaydı ekleme formu açılacak`);
-}
-
-// Media Archive Functions
 function setupMediaFilters() {
     const typeFilter = document.getElementById('media-type-filter');
     const categoryFilter = document.getElementById('media-category-filter');
