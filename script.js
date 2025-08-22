@@ -1571,33 +1571,58 @@ function downloadFile(blob, filename, mimeType) {
 }
 
 // Social media board functions
-function loadSocialMediaBoard() {
+async function loadSocialMediaBoard() {
     const platformFilter = document.getElementById('social-platform-filter')?.value.toLowerCase() || '';
     const searchTerm = document.getElementById('social-search')?.value.toLowerCase() || '';
 
     const statuses = ['taslak', 'planlandi', 'yayinlandi'];
 
-    statuses.forEach(status => {
+    for (const status of statuses) {
         const container = document.getElementById(`social-${status}`);
-        if (!container) return;
+        if (!container) continue;
 
-        let posts = sampleData.socialMediaPosts.filter(post => post.status === status);
+        try {
+            const response = await fetch(`/api/social_posts.php?status=${status}`);
+            const data = await response.json();
+            let posts = (data.posts || []).map(p => ({
+                ...p,
+                scheduledDate: p.scheduled_date,
+                publishedAt: p.published_date
+            }));
 
-        if (platformFilter) {
-            posts = posts.filter(post => post.platform.toLowerCase().includes(platformFilter));
+            if (platformFilter) {
+                posts = posts.filter(post => (post.platform || '').toLowerCase().includes(platformFilter));
+            }
+
+            if (searchTerm) {
+                posts = posts.filter(post => post.title.toLowerCase().includes(searchTerm));
+            }
+
+            const countElement = document.getElementById(`${status}-count`);
+            if (countElement) {
+                countElement.textContent = `(${posts.length})`;
+            }
+
+            container.innerHTML = posts.map(post => renderSocialPost(post)).join('');
+        } catch (error) {
+            console.error('Error loading social posts:', error);
+
+            let posts = sampleData.socialMediaPosts.filter(post => post.status === status);
+            if (platformFilter) {
+                posts = posts.filter(post => post.platform.toLowerCase().includes(platformFilter));
+            }
+            if (searchTerm) {
+                posts = posts.filter(post => post.title.toLowerCase().includes(searchTerm));
+            }
+
+            const countElement = document.getElementById(`${status}-count`);
+            if (countElement) {
+                countElement.textContent = `(${posts.length})`;
+            }
+
+            container.innerHTML = posts.map(post => renderSocialPost(post)).join('');
         }
-
-        if (searchTerm) {
-            posts = posts.filter(post => post.title.toLowerCase().includes(searchTerm));
-        }
-
-        const countElement = document.getElementById(`${status}-count`);
-        if (countElement) {
-            countElement.textContent = `(${posts.length})`;
-        }
-
-        container.innerHTML = posts.map(post => renderSocialPost(post)).join('');
-    });
+    }
 }
 
 function setupSocialFilters() {
@@ -1716,7 +1741,7 @@ function dropSocialPost(event) {
     updateSocialPostStatus(parseInt(postId), newStatus);
 }
 
-async function updateSocialPostStatus(postId, newStatus) {
+async function updateSocialPostStatus(postId, newStatus, extraData = {}, successMessage = 'Gönderi durumu güncellendi') {
     try {
         const response = await fetch('/api/social_posts.php', {
             method: 'PUT',
@@ -1726,37 +1751,44 @@ async function updateSocialPostStatus(postId, newStatus) {
             body: JSON.stringify({
                 id: postId,
                 status: newStatus,
-                updated_at: new Date().toISOString()
+                updated_at: new Date().toISOString(),
+                ...extraData
             })
         });
 
         const result = await response.json();
 
         if (result.success) {
-            // Update local data
             const post = sampleData.socialMediaPosts.find(p => p.id === postId);
             if (post) {
                 post.status = newStatus;
+               if (extraData.scheduled_date) post.scheduledDate = extraData.scheduled_date;
+                if (extraData.published_date) post.publishedAt = extraData.published_date;
                 if (newStatus === 'yayinlandi' && !post.publishedAt) {
                     post.publishedAt = new Date().toISOString().split('T')[0];
                 }
             }
 
             loadSocialMediaBoard();
-            showNotification('Gönderi durumu güncellendi', 'success');
+                       showNotification(successMessage, 'success');
+            return true;
+        } else {
+            throw new Error(result.message);
         }
     } catch (error) {
         console.error('Social post status update error:', error);
-        // Fallback update for demo
         const post = sampleData.socialMediaPosts.find(p => p.id === postId);
         if (post) {
             post.status = newStatus;
+            if (extraData.scheduled_date) post.scheduledDate = extraData.scheduled_date;
+            if (extraData.published_date) post.publishedAt = extraData.published_date;
             if (newStatus === 'yayinlandi' && !post.publishedAt) {
                 post.publishedAt = new Date().toISOString().split('T')[0];
             }
-            loadSocialMediaBoard();
-            showNotification('Gönderi durumu güncellendi (demo)', 'success');
         }
+        loadSocialMediaBoard();
+        showNotification(successMessage + ' (demo)', 'success');
+        return false;
     }
 }
 
@@ -1919,33 +1951,19 @@ async function createSocialPostData(formData) {
     }
 }
 
-function schedulePost(postId) {
-    const post = sampleData.socialMediaPosts.find(p => p.id === postId);
-    if (!post) return;
-
+async function schedulePost(postId) {
     const scheduleDate = prompt('Planlanan tarih ve saat (YYYY-MM-DD HH:MM):');
     if (!scheduleDate) return;
 
-    post.status = 'planlandi';
-    post.scheduledDate = scheduleDate;
-
-    loadSocialMediaBoard();
-    showNotification('Gönderi planlandı', 'success');
+    await updateSocialPostStatus(postId, 'planlandi', { scheduled_date: scheduleDate }, 'Gönderi planlandı');
 }
 
-function publishPost(postId) {
+async function publishPost(postId) {
     if (!confirm('Bu gönderiyi hemen yayınlamak istediğinizden emin misiniz?')) {
         return;
     }
 
-    const post = sampleData.socialMediaPosts.find(p => p.id === postId);
-    if (!post) return;
-
-    post.status = 'yayinlandi';
-    post.publishedAt = new Date().toISOString().split('T')[0];
-
-    loadSocialMediaBoard();
-    showNotification('Gönderi yayınlandı!', 'success');
+    await updateSocialPostStatus(postId, 'yayinlandi', { published_date: new Date().toISOString().split('T')[0] }, 'Gönderi yayınlandı!');
 }
 
 function duplicateSocialPost(postId) {
