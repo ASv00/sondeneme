@@ -3573,6 +3573,26 @@ function compareDates(fileDate, filterDate) {
     const filterDateObj = new Date(filterDate);
     return fDate.getTime() - filterDateObj.getTime();
 }
+// Local fallback filtering using sample data if API is unavailable
+function filterMediaFilesLocal() {
+    const typeFilter = document.getElementById('media-type-filter')?.value || '';
+    const categoryFilter = document.getElementById('media-category-filter')?.value || '';
+    const dateFrom = document.getElementById('media-date-from')?.value || '';
+    const dateTo = document.getElementById('media-date-to')?.value || '';
+    const searchTerm = document.getElementById('media-search')?.value.toLowerCase() || '';
+
+    const filtered = sampleData.mediaFiles.filter(file => {
+        const matchesType = typeFilter ? file.type === typeFilter : true;
+        const matchesCategory = categoryFilter ? file.category === categoryFilter : true;
+        const matchesSearch = searchTerm ? file.title.toLowerCase().includes(searchTerm) : true;
+        const matchesFrom = dateFrom ? compareDates(file.uploadedAt, dateFrom) >= 0 : true;
+        const matchesTo = dateTo ? compareDates(file.uploadedAt, dateTo) <= 0 : true;
+        return matchesType && matchesCategory && matchesSearch && matchesFrom && matchesTo;
+    });
+
+    displayMediaFiles(filtered);
+    updateMediaFilterSummary(filtered.length, sampleData.mediaFiles.length);
+}
 
 function updateMediaFilterSummary(filteredCount, totalCount) {
     const summary = document.getElementById('media-filter-summary');
@@ -5595,7 +5615,7 @@ function generateDownloadableReport(data, type, format) {
     let content = '';
     let filename = `${type}_raporu_${new Date().toISOString().split('T')[0]}`;
 
-    if    if (format === 'csv') {
+     if (format === 'csv') {
         content = convertToCSV(data, type);
         filename += '.csv';
 
