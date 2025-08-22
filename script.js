@@ -5267,6 +5267,10 @@ async function submitMiniForm(type, formData) {
             showNotification(`${type} başarıyla eklendi!`, 'success');
 
             // Refresh relevant section
+                if (type === 'member') {
+                await loadMembersData();
+            }
+
             refreshSection(type);
         } else {
             throw new Error(result.message || 'Ekleme başarısız');
