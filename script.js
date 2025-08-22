@@ -3986,9 +3986,8 @@ async function filterBlogPosts() {
     const statusFilter = document.getElementById('blog-status-filter')?.value || '';
     const dateFrom = document.getElementById('blog-date-from')?.value || '';
     const dateTo = document.getElementById('blog-date-to')?.value || '';
-    const searchTerm = document.getElementById('blog-search')?.value.toLowerCase() || '';
+    const searchTerm = document.getElementById('blog-search')?.value || '';
 
-    // PHP API'ye filtre parametrelerini gönder
     try {
         const params = new URLSearchParams();
         if (categoryFilter) params.append('category', categoryFilter);
@@ -3998,64 +3997,25 @@ async function filterBlogPosts() {
         if (searchTerm) params.append('search', searchTerm);
 
         const response = await fetch(`/api/blog.php?${params.toString()}`);
-
-        // Check if response is JSON
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
             throw new Error('API response is not JSON');
         }
 
         const data = await response.json();
-
         if (data.success) {
             displayBlogPosts(data.posts);
-            updateBlogFilterResults(data.posts.length, data.total || data.posts.length);
+            updateBlogFilterResults(data.posts.length, data.total ?? data.posts.length);
         } else {
             console.error('Blog filtreleme hatası:', data.message);
-            // Hata durumunda örnek veriyi kullan
-            filterBlogPostsLocal();
+            displayBlogPosts([]);
+            updateBlogFilterResults(0, 0);
         }
     } catch (error) {
         console.error('Blog API hatası:', error);
-        // API hatası durumunda yerel filtreleme yap
-        filterBlogPostsLocal();
+        displayBlogPosts([]);
+        updateBlogFilterResults(0, 0);
     }
-}
-
-function filterBlogPostsLocal() {
-    const categoryFilter = document.getElementById('blog-category-filter')?.value || '';
-    const statusFilter = document.getElementById('blog-status-filter')?.value || '';
-    const dateFrom = document.getElementById('blog-date-from')?.value || '';
-    const dateTo = document.getElementById('blog-date-to')?.value || '';
-    const searchTerm = document.getElementById('blog-search')?.value.toLowerCase() || '';
-
-    // Enhanced sample data with more realistic entries
-    const enhancedBlogPosts = [
-        { id: 1, title: 'Kış Gözlemciliği Rehberi', category: 'Rehber', status: 'yayinlandi', publishedAt: '2024-12-10', views: 245, excerpt: 'Kış aylarında astronomi gözlemciliği için kapsamlı rehber' },
-        { id: 2, title: 'Mars Karşıtlığı Nedir?', category: 'Eğitim', status: 'taslak', publishedAt: null, views: 0, excerpt: 'Mars gezegeninin karşıtlık pozisyonu hakkında bilgiler' },
-        { id: 3, title: 'Geminids Meteor Yağmuru 2024', category: 'Etkinlik', status: 'yayinlandi', publishedAt: '2024-12-01', views: 156, excerpt: 'Bu yılın en büyük meteor yağmuru etkinliği' },
-        { id: 4, title: 'Teleskop Bakım Rehberi', category: 'Teknoloji', status: 'inceleme', publishedAt: null, views: 0, excerpt: 'Teleskop bakımı ve temizliği için detaylı bilgiler' },
-        { id: 5, title: 'Astronomi Topluluğu Kuruluş Hikayesi', category: 'Duyuru', status: 'yayinlandi', publishedAt: '2024-11-15', views: 89, excerpt: 'SUBÜ ASTO topluluğunun kuruluş sürecindeki deneyimler' }
-    ];
-
-    let filteredPosts = enhancedBlogPosts.filter(post => {
-        const matchesCategory = !categoryFilter || post.category === categoryFilter;
-        const matchesStatus = !statusFilter || post.status === statusFilter;
-
-        // Tarih filtresi - sadece yayınlanan yazılar için geçerli
-        const matchesDateFrom = !dateFrom || (post.publishedAt && new Date(post.publishedAt) >= new Date(dateFrom));
-        const matchesDateTo = !dateTo || (post.publishedAt && new Date(post.publishedAt) <= new Date(dateTo));
-
-        // Arama - başlık ve excerpt'te ara
-        const matchesSearch = !searchTerm || 
-            post.title.toLowerCase().includes(searchTerm) || 
-            (post.excerpt && post.excerpt.toLowerCase().includes(searchTerm));
-
-        return matchesCategory && matchesStatus && matchesDateFrom && matchesDateTo && matchesSearch;
-    });
-
-    displayBlogPosts(filteredPosts);
-    updateBlogFilterResults(filteredPosts.length, enhancedBlogPosts.length);
 }
 
 function clearBlogFilters() {
