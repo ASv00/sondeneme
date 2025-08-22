@@ -6437,7 +6437,7 @@ async function deleteLibraryTag(tagId, tagName) {
 
         if (result.success) {
             // Etiket öğesini DOM'dan kaldır
-            const tagElement = document.querySelector(`[data-tag-id="${tagId}"]`);
+           const tagElement = document.querySelector(`[data-tag-id="${tagId}"]`);
             if (tagElement) {
                 tagElement.remove();
             }
@@ -6462,9 +6462,26 @@ function setupResourceForm() {
     const selectedTagsContainer = document.getElementById('resource-selected-tags');
 
     let selectedTags = [];
+    let availableTags = [];
+    let tagListEl;
 
     if (tagInput) {
-        tagInput.addEventListener('keypress', function(e) {
+        tagListEl = document.createElement('datalist');
+        tagListEl.id = 'resource-tag-list';
+        document.body.appendChild(tagListEl);
+        tagInput.setAttribute('list', 'resource-tag-list');
+
+        // Fetch existing tags for suggestions
+        fetch('/api/library_tags.php')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    availableTags = data.tags.map(t => t.name);
+                    updateTagList();
+                }
+            });
+
+        tagInput.addEventListener('keypress', async function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 const tag = this.value.trim().toLowerCase();
@@ -6472,9 +6489,32 @@ function setupResourceForm() {
                     selectedTags.push(tag);
                     updateSelectedTags();
                     this.value = '';
+
+                    if (!availableTags.includes(tag)) {
+                        try {
+                            const res = await fetch('/api/library_tags.php', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ name: tag, created_by: currentUser.id || 1 })
+                            });
+                            const result = await res.json();
+                            if (result.success) {
+                                availableTags.push(tag);
+                                updateTagList();
+                            }
+                        } catch (err) {
+                            console.error('Etiket ekleme hatası:', err);
+                        }
+                    }
                 }
             }
         });
+    }
+
+    function updateTagList() {
+        if (tagListEl) {
+            tagListEl.innerHTML = availableTags.map(t => `<option value="${t}">`).join('');
+        }
     }
 
     function updateSelectedTags() {
@@ -6502,6 +6542,7 @@ function setupResourceForm() {
             }
         });
     }
+
 }
 
 async function createResourceData(formData, selectedTags) {
