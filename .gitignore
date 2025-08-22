@@ -141,7 +141,10 @@ logs/
 
 # Yüklenen dosyalar (geliştirme ortamı)
 uploads/*
+!uploads/
 !uploads/.gitkeep
+!uploads/previews/
+!uploads/previews/.gitkeep
 
 # IDE dosyları
 .vscode/
