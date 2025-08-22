@@ -614,6 +614,34 @@ function createDatabaseTables() {
             echo "Tablo '{$tableName}' oluşturulurken hata: " . $e->getMessage() . "<br>";
         }
     }
+     // Ensure legacy posts table has required columns
+    try {
+        $tableExists = $db->fetch(
+            "SELECT 1 FROM information_schema.tables WHERE table_schema = :db AND table_name = 'posts'",
+            ['db' => DB_NAME]
+        );
+
+        if ($tableExists) {
+            $columns = [
+                'category' => "VARCHAR(100)",
+                'status' => "ENUM('taslak','inceleme','yayinlandi','arsivlendi') DEFAULT 'taslak'",
+                'published_at' => "TIMESTAMP NULL"
+            ];
+
+            foreach ($columns as $name => $definition) {
+                $colExists = $db->fetch(
+                    "SELECT 1 FROM information_schema.columns WHERE table_schema = :db AND table_name = 'posts' AND column_name = :col",
+                    ['db' => DB_NAME, 'col' => $name]
+                );
+                if (!$colExists) {
+                    $db->query("ALTER TABLE posts ADD COLUMN {$name} {$definition}");
+                    echo "Kolon '{$name}' posts tablosuna eklendi.<br>";
+                }
+            }
+        }
+    } catch (Exception $e) {
+        echo "Posts tablosu güncellenirken hata: " . $e->getMessage() . "<br>";
+    }
 }
 
 // İlk admin kullanıcı oluşturma
