@@ -2277,7 +2277,7 @@ async function submitDocumentForApproval(id) {
     try {
         const formData = new FormData();
         formData.append('action', 'submit_for_approval');
-        formData.append('document_id', id);
+                formData.append('document_id', id);
 
         const response = await fetch('/api/documents.php', {
             method: 'POST',
@@ -2302,10 +2302,13 @@ async function loadDocuments() {
     try {
         const categoryFilter = document.getElementById('document-category-filter')?.value || '';
         const statusFilter = document.getElementById('document-status-filter')?.value || '';
+        const roleMap = { 'başkan': 'baskan', 'mentor': 'mentor', 'üye': 'uye', 'birim_yoneticisi': 'birim_yoneticisi' };
+        const apiRole = roleMap[currentUser.role] || currentUser.role;
 
         const params = new URLSearchParams({
             category: categoryFilter,
-            status: statusFilter
+            status: statusFilter,
+            role: apiRole
         });
 
         const response = await fetch(`/api/documents.php?${params}`);
@@ -2319,7 +2322,14 @@ async function loadDocuments() {
         const result = await response.json();
 
         if (result.success) {
-            displayDocuments(result.data, result.user_role, result.can_approve_any);
+            const documents = Array.isArray(result.data) ? result.data : [];
+            let filtered = documents;
+            if (statusFilter) {
+                filtered = documents.filter(doc => (doc.approval_status || doc.status) === statusFilter);
+            }
+            const roleMapReverse = { baskan: 'başkan', mentor: 'mentor', uye: 'üye', birim_yoneticisi: 'birim_yoneticisi' };
+            const userRole = roleMapReverse[result.user_role] || result.user_role;
+            displayDocuments(filtered, userRole, result.can_approve_any);
         } else {
             console.error('Belge yükleme hatası:', result.error);
             // Fallback olarak örnek veriyi göster
@@ -2345,6 +2355,7 @@ function displayDocuments(documents, userRole, canApproveAny) {
 
         // For other users, check document access level and status
         const accessLevel = document.access_level || 'uyeler';
+
         const status = document.status || document.approval_status;
 
         switch (accessLevel) {
