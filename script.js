@@ -4493,11 +4493,15 @@ async function manageLibraryTags() {
 // Task Management Functions
 function showTaskCreationModal() {
     document.getElementById('task-modal').style.display = 'block';
+    return loadTaskAssignmentOptions();
 }
 
 function closeTaskModal() {
     document.getElementById('task-modal').style.display = 'none';
 }
+
+let taskUsers = [];
+let taskDepartments = [];
 
 function setupTaskForm() {
     const form = document.getElementById('task-form');
@@ -4506,6 +4510,39 @@ function setupTaskForm() {
             e.preventDefault();
             createTask(new FormData(this));
         });
+    }
+}
+
+async function loadTaskAssignmentOptions() {
+    try {
+        const [usersRes, departmentsRes] = await Promise.all([
+            fetch('/api/users.php'),
+            fetch('/api/departments.php')
+        ]);
+        const usersData = await usersRes.json();
+        const departmentsData = await departmentsRes.json();
+
+        taskUsers = usersData.users || [];
+        taskDepartments = departmentsData.departments || [];
+
+        const userOptions = ['<option value="">Kişi seçin...</option>'];
+        taskUsers.forEach(u => {
+            userOptions.push(`<option value="${u.id}">${u.full_name}</option>`);
+        });
+
+        const deptOptions = ['<option value="">Birim seçin...</option>'];
+        taskDepartments.forEach(d => {
+            deptOptions.push(`<option value="${d.id}">${d.name}</option>`);
+        });
+
+        document.querySelectorAll('select[name="assigned_to"]').forEach(sel => {
+            sel.innerHTML = userOptions.join('');
+        });
+        document.querySelectorAll('select[name="department_id"]').forEach(sel => {
+            sel.innerHTML = deptOptions.join('');
+        });
+    } catch (err) {
+        console.error('Assignment options load error:', err);
     }
 }
 
@@ -4583,7 +4620,7 @@ async function createTask(formData) {
             ...taskData,
             assignedTo: parseInt(taskData.assigned_to)
         };
-        sampleData.tasks.push(newTask);
+       sampleData.tasks.push(newTask);
 
         closeModal();
         loadTasksKanban();
@@ -4608,7 +4645,7 @@ function loadTasksKanban() {
                 <h3>${status.title} <span class="task-count">(${tasks.length})</span></h3>
                 <div class="kanban-items" ondrop="dropTask(event)" ondragover="allowDrop(event)">
                     ${tasks.map(task => {
-                        const assignedUser = sampleData.members.find(m => m.id === (task.assignedTo || task.assigned_to));
+                    const assignedUser = taskUsers.find(m => m.id === (task.assignedTo || task.assigned_to));
                         const departmentName = getDepartmentName(task.department_id);
                         const dueDate = formatTaskDate(task.due_date || task.dueDate);
                         const isOverdue = isTaskOverdue(task.due_date || task.dueDate);
@@ -5050,7 +5087,6 @@ function showMiniForm(type) {
                         <input type="text" name="title" placeholder="Görev Başlığı *" required>
                         <select name="assigned_to" required>
                             <option value="">Kişi Seçin</option>
-                            ${sampleData.members.map(m => `<option value="${m.id}">${m.name}</option>`).join('')}
                         </select>
                         <input type="date" name="due_date" required>
                         <select name="priority">
@@ -5084,6 +5120,7 @@ function showMiniForm(type) {
                             <option value="taslak">Taslak</option>
                             <option value="yayinlandi">Yayınla</option>
                         </select>
+
                         <div class="mini-form-actions">
                             <button type="submit" class="btn btn-primary btn-sm">Ekle</button>
                             <button type="button" class="btn btn-secondary btn-sm" onclick="closeMiniForm()">İptal</button>
@@ -5107,6 +5144,10 @@ function showMiniForm(type) {
             e.preventDefault();
             submitMiniForm(type, new FormData(this));
         });
+    }
+
+    if (type === 'task') {
+        loadTaskAssignmentOptions();
     }
 
     // Close on overlay click
@@ -5720,7 +5761,7 @@ function viewTaskDetail(taskId) {
     const task = sampleData.tasks.find(t => t.id === taskId);
     if (!task) return;
 
-    const assignedUser = sampleData.members.find(m => m.id === (task.assignedTo || task.assigned_to));
+    const assignedUser = taskUsers.find(m => m.id === (task.assignedTo || task.assigned_to));
     const departmentName = getDepartmentName(task.department_id);
     const dueDate = formatTaskDate(task.due_date || task.dueDate);
     const isOverdue = isTaskOverdue(task.due_date || task.dueDate);
@@ -5765,14 +5806,8 @@ function getTaskStatusText(status) {
 
 // Task helper functions
 function getDepartmentName(departmentId) {
-    const departments = {
-        1: 'Yönetim',
-        2: 'Sosyal Medya',
-        3: 'Organizasyon',
-        4: 'Teknik',
-        5: 'Eğitim'
-    };
-    return departments[departmentId] || '';
+    const dept = taskDepartments.find(d => d.id === departmentId);
+    return dept ? dept.name : '';
 }
 
 function getProjectStatusText(status) {
@@ -5834,153 +5869,7 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-function editTask(taskId) {
-    const task = sampleData.tasks.find(t => t.id === taskId);
-    if (!task) {
-        alert('Görev bulunamadı');
-        return;
-    }
-
-    closeModal(); // Close detail modal first
-
-    const content = `
-        <div class="task-form">
-            <form id="task-edit-form">
-                <input type="hidden" name="id" value="${taskId}">
-                <div class="form-group">
-                    <label>Görev Başlığı: *</label>
-                    <input type="text" name="title" required value="${task.title}">
-                </div>
-                <div class="form-group">
-                    <label>Açıklama:</label>
-                    <textarea name="description" rows="3">${task.description || ''}</textarea>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Atanan Kişi: *</label>
-                        <select name="assigned_to" required>
-                            <option value="">Kişi seçin...</option>
-                            <option value="1" ${(task.assigned_to || task.assignedTo) === 1 ? 'selected' : ''}>Ahmet Yılmaz</option>
-                            <option value="2" ${(task.assigned_to || task.assignedTo) === 2 ? 'selected' : ''}>Zeynep Kaya</option>
-                            <option value="3" ${(task.assigned_to || task.assignedTo) === 3 ? 'selected' : ''}>Mehmet Demir</option>
-                            <option value="4" ${(task.assigned_to || task.assignedTo) === 4 ? 'selected' : ''}>Ayşe Çelik</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Birim:</label>
-                        <select name="department_id">
-                            <option value="">Birim seçin...</option>
-                            <option value="1" ${task.department_id === 1 ? 'selected' : ''}>Yönetim</option>
-                            <option value="2" ${task.department_id === 2 ? 'selected' : ''}>Sosyal Medya</option>
-                            <option value="3" ${task.department_id === 3 ? 'selected' : ''}>Organizasyon</option>
-                            <option value="4" ${task.department_id === 4 ? 'selected' : ''}>Teknik</option>
-                            <option value="5" ${task.department_id === 5 ? 'selected' : ''}>Eğitim</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Bitiş Tarihi: *</label>
-                        <input type="datetime-local" name="due_date" required value="${formatDateTimeForInput(task.due_date || task.dueDate)}">
-                    </div>
-                    <div class="form-group">
-                        <label>Durum:</label>
-                        <select name="status">
-                            <option value="yapilacak" ${task.status === 'yapilacak' ? 'selected' : ''}>Yapılacak</option>
-                            <option value="devam_ediyor" ${task.status === 'devam_ediyor' ? 'selected' : ''}>Devam Ediyor</option>
-                            <option value="tamamlandi" ${task.status === 'tamamlandi' ? 'selected' : ''}>Tamamlandı</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Öncelik:</label>
-                        <select name="priority">
-                            <option value="dusuk" ${task.priority === 'dusuk' ? 'selected' : ''}>Düşük</option>
-                            <option value="orta" ${task.priority === 'orta' ? 'selected' : ''}>Orta</option>
-                            <option value="yuksek" ${task.priority === 'yuksek' ? 'selected' : ''}>Yüksek</option>
-                            <option value="acil" ${task.priority === 'acil' ? 'selected' : ''}>Acil</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Tahmini Süre (saat):</label>
-                        <input type="number" name="estimated_hours" min="1" value="${task.estimated_hours || ''}">
-                    </div>
-                </div>
-                <div class="modal-actions">
-                    <button type="submit" class="btn btn-primary">Görevi Güncelle</button>
-                    <button type="button" class="btn btn-danger" onclick="deleteTask(${taskId})">Sil</button>
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()">İptal</button>
-                </div>
-            </form>
-        </div>
-    `;
-
-    createModal('Görev Düzenle', content);
-    setupTaskEditForm();
-}
-
-function setupTaskEditForm() {
-    const form = document.getElementById('task-edit-form');
-    if (form) {
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            const taskId = parseInt(formData.get('id'));
-
-            const taskData = {
-                id: taskId,
-                title: formData.get('title'),
-                description: formData.get('description'),
-                assigned_to: parseInt(formData.get('assigned_to')),
-                department_id: formData.get('department_id') ? parseInt(formData.get('department_id')) : null,
-                due_date: formData.get('due_date'),
-                status: formData.get('status'),
-                priority: formData.get('priority'),
-                estimated_hours: formData.get('estimated_hours') ? parseInt(formData.get('estimated_hours')) : null
-            };
-
-            try {
-                const response = await fetch('/api/tasks.php', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(taskData)
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    // Update local data
-                    const taskIndex = sampleData.tasks.findIndex(t => t.id === taskId);
-                    if (taskIndex !== -1) {
-                        sampleData.tasks[taskIndex] = { ...sampleData.tasks[taskIndex], ...taskData };
-                    }
-
-                    closeModal();
-                    loadTasksKanban();
-                    showNotification('Görev başarıyla güncellendi!', 'success');
-                } else {
-                    alert('Görev güncellenirken hata: ' + result.message);
-                }
-            } catch (error) {
-                console.error('Task update error:', error);
-
-                // Fallback: Update local data
-                const taskIndex = sampleData.tasks.findIndex(t => t.id === taskId);
-                if (taskIndex !== -1) {
-                    sampleData.tasks[taskIndex] = { ...sampleData.tasks[taskIndex], ...taskData };
-                    loadTasksKanban();
-                    showNotification('Görev güncellendi (demo modu)', 'success');
-                }
-                closeModal();
-            }
-        });
-    }
-}
-
-function deleteTask(taskId) {
+createModal {
     if (!confirm('Bu görevi silmek istediğinizden emin misiniz?')) {
         return;
     }
@@ -6064,67 +5953,24 @@ function editTask(taskId) {
     const task = sampleData.tasks.find(t => t.id === taskId);
     if (!task) return;
 
-    // Populate form with existing data
-    document.querySelector('[name="title"]').value = task.title;
-    document.querySelector('[name="description"]').value = task.description || '';
-    document.querySelector('[name="assigned_to"]').value = task.assigned_to || task.assignedTo;
-    document.querySelector('[name="department_id"]').value = task.department_id;
-    document.querySelector('[name="due_date"]').value = task.due_date || task.dueDate;
-    document.querySelector('[name="reminder_at"]').value = task.reminder_at;
-    document.querySelector('[name="priority"]').value = task.priority;
-    document.querySelector('[name="estimated_hours"]').value = task.estimated_hours;
+    showTaskCreationModal().then(() => {
+        document.querySelector('[name="title"]').value = task.title;
+        document.querySelector('[name="description"]').value = task.description || '';
+        document.querySelector('[name="assigned_to"]').value = task.assigned_to || task.assignedTo;
+        document.querySelector('[name="department_id"]').value = task.department_id;
+        document.querySelector('[name="due_date"]').value = task.due_date || task.dueDate;
+        document.querySelector('[name="reminder_at"]').value = task.reminder_at;
+        document.querySelector('[name="priority"]').value = task.priority;
+        document.querySelector('[name="estimated_hours"]').value = task.estimated_hours;
 
-    if (task.tags) {
-        const tags = typeof task.tags === 'string' ? JSON.parse(task.tags) : task.tags;
-        document.querySelector('[name="tags"]').value = tags.join(', ');
-    }
+        if (task.tags) {
+            const tags = typeof task.tags === 'string' ? JSON.parse(task.tags) : task.tags;
+            document.querySelector('[name="tags"]').value = tags.join(', ');
+        }
 
-    // Change form to edit mode
-    document.querySelector('#task-modal h3').textContent = 'Görevi Düzenle';
-    document.querySelector('#task-form').dataset.editId = taskId;
-
-    showTaskCreationModal();
-}
-
-function deleteTask(taskId) {
-    if (!confirm('Bu görevi silmek istediğinizden emin misiniz?')) {
-        return;
-    }
-
-    sampleData.tasks = sampleData.tasks.filter(t => t.id !== taskId);
-    loadTasksKanban();
-    showNotification('Görev silindi', 'success');
-}
-
-function viewTaskDetail(taskId) {
-    const task = sampleData.tasks.find(t => t.id === taskId);
-    if (!task) return;
-
-    const assignedUser = sampleData.members.find(m => m.id === (task.assigned_to || task.assignedTo));
-    const departmentName = getDepartmentName(task.department_id);
-
-    const content = `
-        <div class="task-detail">
-            <h3>${task.title}</h3>
-            <div class="task-info">
-                <p><strong>Açıklama:</strong> ${task.description || 'Açıklama yok'}</p>
-                <p><strong>Atanan:</strong> ${assignedUser ? assignedUser.name : 'Atanmamış'}</p>
-                <p><strong>Birim:</strong> ${departmentName || 'Belirsiz'}</p>
-                <p><strong>Durum:</strong> ${task.status}</p>
-                <p><strong>Öncelik:</strong> ${getPriorityText(task.priority)}</p>
-                <p><strong>Bitiş Tarihi:</strong> ${formatTaskDate(task.due_date || task.dueDate)}</p>
-                ${task.estimated_hours ? `<p><strong>Tahmini Süre:</strong> ${task.estimated_hours} saat</p>` : ''}
-                ${task.tags ? `<p><strong>Etiketler:</strong> ${JSON.parse(task.tags).map(tag => '#' + tag).join(', ')}</p>` : ''}
-            </div>
-            <div class="modal-actions">
-                <button class="btn btn-primary" onclick="editTask(${taskId}); closeModal();">Düzenle</button>
-                <button class="btn btn-danger" onclick="deleteTask(${taskId}); closeModal();">Sil</button>
-                <button class="btn btn-secondary" onclick="closeModal()">Kapat</button>
-            </div>
-        </div>
-    `;
-
-    createModal('Görev Detayları', content);
+        document.querySelector('#task-modal h3').textContent = 'Görevi Düzenle';
+        document.querySelector('#task-form').dataset.editId = taskId;
+    });
 }
 
 
