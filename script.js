@@ -4711,6 +4711,24 @@ async function loadReportsData() {
             if (reportType === 'all' || reportType === 'membership') {
                 loadMembershipChart(data.membership || data);
             }
+            if (data.events) {
+                const ev = data.events;
+                document.getElementById('total-events-metric').textContent = ev.events ? ev.events.length : (ev.total_events || 0);
+                document.getElementById('total-participants-metric').textContent = ev.total_participants || 0;
+            }
+            if (data.budget) {
+                const bd = data.budget;
+                document.getElementById('total-budget-metric').textContent = `₺${(bd.total_expense || 0).toLocaleString()}`;
+            }
+            if (data.social) {
+                const sc = data.social;
+                document.getElementById('total-posts-metric').textContent = sc.published_posts || 0;
+                document.getElementById('total-engagement-metric').textContent = (sc.total_engagement || 0).toLocaleString();
+            }
+            if (data.membership) {
+                const ms = data.membership;
+                document.getElementById('active-members-metric').textContent = ms.total_members || 0;
+            }
         } else {
             console.error('Reports API error:', result.message);
             loadReportsDataFallback(reportType, dateFrom, dateTo);
@@ -4766,6 +4784,17 @@ function loadReportsDataFallback(reportType = 'all', dateFrom = '', dateTo = '')
     if (reportType === 'all' || reportType === 'membership') {
         loadMembershipChart({ members: filteredMembers });
     }
+        document.getElementById('total-events-metric').textContent = filteredEvents.length;
+    const totalParticipants = filteredEvents.reduce((sum, e) => sum + (e.participants || 0), 0);
+    document.getElementById('total-participants-metric').textContent = totalParticipants;
+    const totalExpense = filteredBudgetLogs.filter(log => (log.type || log.transaction_type) === 'gider')
+        .reduce((sum, l) => sum + (l.amount || 0), 0);
+    document.getElementById('total-budget-metric').textContent = `₺${totalExpense.toLocaleString()}`;
+    const publishedPosts = filteredSocialPosts.filter(post => post.status === 'yayinlandi').length;
+    document.getElementById('total-posts-metric').textContent = publishedPosts;
+    const totalEngagement = filteredSocialPosts.reduce((sum, p) => sum + (p.likes || 0) + (p.comments || 0) + (p.shares || 0), 0);
+    document.getElementById('total-engagement-metric').textContent = totalEngagement.toLocaleString();
+    document.getElementById('active-members-metric').textContent = filteredMembers.length;
 }
 
 async function loadEventsChart(eventsData = null) {
