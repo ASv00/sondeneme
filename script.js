@@ -1390,9 +1390,9 @@ async function loadSponsorsForFilter() {
     try {
         const response = await fetch('/api/events.php');
         const data = await response.json();
-
-        if (data.success && data.sponsors) {
-            populateSponsorFilter(data.sponsors);
+        
+        if (data.success) {
+            populateSponsorFilter(data.sponsors || []);
         } else {
             throw new Error('API response invalid');
         }
@@ -1484,10 +1484,20 @@ async function exportToCalendar() {
 async function exportEventsToCalendar() {
     try {
         showNotification('Takvim dosyası hazırlanıyor...', 'info');
+        const typeFilter = document.getElementById('event-type-filter')?.value || '';
+        const monthFilter = document.getElementById('event-month-filter')?.value || '';
+        const sponsorFilter = document.getElementById('event-sponsor-filter')?.value || '';
+        const searchTerm = document.getElementById('event-search')?.value || '';
 
-        // First try to get data from API
-        const response = await fetch('/api/events.php?export=ics');
+        const params = new URLSearchParams({
+            export: 'ics',
+            type: typeFilter,
+            month: monthFilter,
+            sponsor: sponsorFilter,
+            search: searchTerm
+        });
 
+        const response = await fetch(`/api/events.php?${params.toString()}`);
         if (response.ok) {
             const blob = await response.blob();
             downloadFile(blob, 'subu-asto-etkinlikler.ics', 'text/calendar');
@@ -1982,8 +1992,6 @@ function exportSocialMediaReport() {
             taslak: sampleData.socialMediaPosts.filter(p => p.status === 'taslak').length,
             planlandi: sampleData.socialMediaPosts.filter(p => p.status === 'planlandi').length,
             yayinlandi: sampleData.socialMediaPosts.filter(p => p.status === 'yayinlandi').length
-        },
-        generated_at: new Date().toISOString()
         },
         generated_at: new Date().toISOString()
     };
@@ -3286,8 +3294,20 @@ function clearActiveShortcutIndicator() {
 }
 
 // Additional utility functions
-function loadEventsData() {
-    displayFilteredEvents(sampleData.events);
+async function loadEventsData() {
+    try {
+        const response = await fetch('/api/events.php');
+        const data = await response.json();
+
+        if (data.success) {
+            displayFilteredEvents(data.events);
+        } else {
+            displayFilteredEvents(sampleData.events);
+        }
+    } catch (error) {
+        console.error('Error loading events:', error);
+        displayFilteredEvents(sampleData.events);
+    }
 }
 
 function openSocialPostDetail(id) {
