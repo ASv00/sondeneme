@@ -6062,7 +6062,10 @@ function displayProjects(projects) {
     }
 
     grid.innerHTML = projects.map(project => {
-        const partners = JSON.parse(project.partners || '[]');
+                const partnersData = project.partners;
+        const partners = Array.isArray(partnersData)
+            ? partnersData
+            : JSON.parse(partnersData || '[]');
         const budgetUsed = parseFloat(project.budget_used || 0);
         const budgetTotal = parseFloat(project.budget_total || 0);
         const budgetProgress = budgetTotal > 0 ? (budgetUsed / budgetTotal) * 100 : 0;
@@ -6172,7 +6175,7 @@ function setupBudgetUpdateForm() {
 
             try {
                 const response = await fetch('/api/projects.php', {
-                    method: 'PUT',
+                    method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json'
                     },
