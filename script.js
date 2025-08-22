@@ -2069,7 +2069,8 @@ function updateCalendarWithSkyEvents(events) {
     // Clear existing event indicators
     document.querySelectorAll('.calendar-day').forEach(day => {
         day.classList.remove('has-event');
-        day.removeAttribute('data-event-id');
+                // Ensure every day has data-event-id attribute
+        day.setAttribute('data-event-id', '');
         day.removeAttribute('data-event-type');
         day.removeAttribute('onclick');
         const existingDot = day.querySelector('.event-dot');
