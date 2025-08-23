@@ -2,14 +2,29 @@
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../database.php';
 
+$method = $_SERVER['REQUEST_METHOD'];
+
 try {
     $db = Database::getInstance();
+
+    if ($method === 'PATCH' || $method === 'PUT') {
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!$data || !isset($data['id']) || !isset($data['is_archived'])) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'ID ve arşiv durumu gerekli']);
+            exit;
+        }
+        $db->update('events', ['is_archived' => (int)$data['is_archived']], 'id = :id', ['id' => (int)$data['id']]);
+        echo json_encode(['success' => true]);
+        exit;
+    }
 
     $filters = [
         'type' => $_GET['type'] ?? null,
         'month' => $_GET['month'] ?? null,
         'sponsor' => $_GET['sponsor'] ?? null,
-        'search' => $_GET['search'] ?? null
+        'search' => $_GET['search'] ?? null,
+        'archived' => isset($_GET['archived']) ? (int)$_GET['archived'] : 0
     ];
 
     function fetchEvents($db, $filters) {
@@ -33,9 +48,12 @@ try {
             $params['search'] = '%' . $filters['search'] . '%';
         }
 
+        $where[] = 'is_archived = :archived';
+        $params['archived'] = $filters['archived'];
+
         $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
 
-        $sql = "SELECT id, title, DATE(start_date) AS date, location, sponsor_company AS sponsor, event_type AS type, start_date, end_date FROM events {$whereSql} ORDER BY start_date ASC";
+                $sql = "SELECT id, title, DATE(start_date) AS date, location, sponsor_company AS sponsor, event_type AS type, start_date, end_date, is_archived FROM events {$whereSql} ORDER BY start_date ASC";
 
         return $db->fetchAll($sql, $params);
     }
