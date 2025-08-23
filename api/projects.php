@@ -11,11 +11,12 @@ try {
 
     switch ($method) {
         case 'GET':
+        $archived = isset($_GET['archived']) ? (int)$_GET['archived'] : 0;
             if (isset($_GET['id'])) {
                 $project = $db->fetch("SELECT * FROM projects WHERE id = :id", ['id' => (int)$_GET['id']]);
                 echo json_encode(['success' => true, 'project' => $project]);
             } else {
-                $projects = $db->fetchAll("SELECT * FROM projects ORDER BY created_at DESC");
+                $projects = $db->fetchAll("SELECT * FROM projects WHERE is_archived = :archived ORDER BY created_at DESC", ['archived' => $archived]);
                 echo json_encode(['success' => true, 'projects' => $projects]);
             }
             break;
@@ -51,10 +52,16 @@ try {
             }
             $id = (int)$data['id'];
             $updateFields = [];
-            $fields = ['title', 'description', 'project_type', 'status', 'start_date', 'end_date', 'budget_total', 'budget_used', 'partners'];
+            fields = ['title', 'description', 'project_type', 'status', 'start_date', 'end_date', 'budget_total', 'budget_used', 'partners', 'is_archived'];
             foreach ($fields as $field) {
                 if (isset($data[$field])) {
-                    $updateFields[$field] = ($field === 'partners') ? json_encode($data[$field]) : $data[$field];
+                    if ($field === 'partners') {
+                        $updateFields[$field] = json_encode($data[$field]);
+                    } elseif ($field === 'is_archived') {
+                        $updateFields[$field] = (int)$data[$field];
+                    } else {
+                        $updateFields[$field] = $data[$field];
+                    }
                 }
             }
             if (empty($updateFields)) {
