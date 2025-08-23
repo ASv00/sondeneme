@@ -28,6 +28,7 @@ try {
     $db = Database::getInstance();
     $user = $db->fetch('SELECT * FROM users WHERE email = :email', ['email' => $email]);
     if (!$user || !password_verify($password, $user['password_hash'])) {
+        logLoginAttempt($user['id'] ?? null, $email, 'failure');
         http_response_code(401);
         echo json_encode(['success' => false, 'error' => 'Invalid credentials']);
         exit;
@@ -35,6 +36,7 @@ try {
 
     if ($user['two_factor_enabled']) {
         if (!$code || !TOTP::verifyCode($user['two_factor_secret'], $code)) {
+            logLoginAttempt($user['id'], $email, 'failure');
             logLoginAttempt($user['id'] ?? null, $email, 'failure');
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => '2FA code required']);
