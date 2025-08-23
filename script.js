@@ -4,7 +4,7 @@ let currentUser = {
     role: 'başkan',
     language: localStorage.getItem('userLanguage') || 'tr'
 };
-
+const currentUserId = 1;
 // DOM Elements
 const themeToggle = document.getElementById('themeToggle');
 const navLinks = document.querySelectorAll('.nav-link');
@@ -5902,7 +5902,7 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-createModal {
+function deleteTask(taskId) {
     if (!confirm('Bu görevi silmek istediğinizden emin misiniz?')) {
         return;
     }
@@ -5921,10 +5921,42 @@ function scheduleTaskReminder(taskId, reminderDate) {
 
     if (delay > 0) {
         setTimeout(() => {
-            showNotification(`Görev hatırlatması: ${sampleData.tasks.find(t => t.id === taskId)?.title}`, 'warning');
+            loadNotifications();
         }, delay);
     }
 }
+async function loadNotifications() {
+    try {
+        const response = await fetch(`/api/notifications.php?user_id=${currentUserId}`);
+        const data = await response.json();
+        if (data.success) {
+            renderNotifications(data.notifications);
+        }
+    } catch (err) {
+        console.error('Notification fetch error', err);
+    }
+}
+
+function renderNotifications(notifications) {
+    const container = document.getElementById('notification-list');
+    if (!container) return;
+    container.innerHTML = '';
+    notifications.forEach(n => {
+        const div = document.createElement('div');
+        div.className = 'notification-item';
+        div.innerHTML = `<strong>${n.title}</strong><p>${n.message}</p>`;
+        if (n.action_url) {
+            const link = document.createElement('a');
+            link.href = n.action_url;
+            link.textContent = 'Takvime Ekle';
+            div.appendChild(link);
+        }
+        container.appendChild(div);
+    });
+}
+
+setInterval(loadNotifications, 60000);
+document.addEventListener('DOMContentLoaded', () => { loadNotifications(); });
 
 // Drag and drop functions for kanban
 function allowDrop(event) {
