@@ -793,22 +793,27 @@
                     <div class="report-controls">
                     </div>
                 </div>
-
-                <div class="filters">
-                    <select class="filter-select" id="report-type-filter">
-                        <option value="all">Tüm Raporlar</option>
-                        <option value="events">Etkinlik Analizi</option>
-                        <option value="budget">Bütçe Analizi</option>
-                        <option value="social">Sosyal Medya</option>
-                        <option value="membership">Üyelik Analizi</option>
-                    </select>
-                    <input type="date" class="filter-input" id="report-date-from">
-                    <input type="date" class="filter-input" id="report-date-to">
-                    <button class="btn btn-sm" onclick="updateReports()">Güncelle</button>
+<div class="archive-tabs">
+                    <button class="archive-tab active" data-target="reports-analytics">Analizler</button>
+                    <button class="archive-tab" data-target="reports-archived">Arşivlenmiş Veriler</button>
                 </div>
 
-                <div class="reports-grid" id="reports-grid">
-                    <div class="report-card">
+                <div id="reports-analytics" class="archive-content active">
+                    <div class="filters">
+                        <select class="filter-select" id="report-type-filter">
+                            <option value="all">Tüm Raporlar</option>
+                            <option value="events">Etkinlik Analizi</option>
+                            <option value="budget">Bütçe Analizi</option>
+                            <option value="social">Sosyal Medya</option>
+                            <option value="membership">Üyelik Analizi</option>
+                        </select>
+                        <input type="date" class="filter-input" id="report-date-from">
+                        <input type="date" class="filter-input" id="report-date-to">
+                        <button class="btn btn-sm" onclick="updateReports()">Güncelle</button>
+                    </div>
+
+                    <div class="reports-grid" id="reports-grid">
+                        <div class="report-card">
                         <h3>📅 Etkinlik Katılım Analizi</h3>
                         <canvas id="events-chart" width="350" height="220"></canvas>
                         <p id="events-summary" class="chart-summary">Yükleniyor...</p>
@@ -880,6 +885,15 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            <div id="reports-archived" class="archive-content">
+                <div class="archived-items">
+                    <h3>Arşivlenmiş Etkinlikler</h3>
+                    <div class="archived-list" id="archived-events"></div>
+                    <h3>Arşivlenmiş Projeler</h3>
+                    <div class="archived-list" id="archived-projects"></div>
+                </div>
+            </div>
             </section>
         </main>
     </div>
