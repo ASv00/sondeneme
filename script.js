@@ -6125,6 +6125,7 @@ function displayProjects(projects) {
                     <button class="btn btn-sm" onclick="editProject(${project.id})">Düzenle</button>
                     <button class="btn btn-sm btn-outline" onclick="openProjectDetail(${project.id})">Detay</button>
                     <button class="btn btn-sm btn-outline" onclick="updateProjectBudget(${project.id})">Bütçe Güncelle</button>
+                    Archive(${project.id}, ${project.is_archived ? 0 : 1})">${project.is_archived ? 'Arşivden Çıkar' : 'Arşivle'}</button>                
                 </div>
             </div>
         `;
@@ -6907,3 +6908,117 @@ function archiveResource(id) {
     showNotification('Kaynak arşivlendi', 'success');
     filterLibraryResources();
 }
+function showBackupExportModal() {
+    const content = `
+        <form id="export-form">
+            <div class="table-selection">
+                <label><input type="checkbox" name="tables" value="events"> Etkinlikler</label>
+                <label><input type="checkbox" name="tables" value="projects"> Projeler</label>
+                <label><input type="checkbox" name="tables" value="users"> Üyeler</label>
+            </div>
+            <div class="export-options">
+                <label><input type="radio" name="format" value="csv" checked> CSV</label>
+                <label><input type="radio" name="format" value="zip"> ZIP</label>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-primary" onclick="exportSelectedTables()">Dışa Aktar</button>
+            </div>
+        </form>
+    `;
+    createModal('Veri Dışa Aktar', content);
+}
+
+function exportSelectedTables() {
+    const form = document.getElementById('export-form');
+    const tables = Array.from(form.querySelectorAll('input[name="tables"]:checked')).map(cb => cb.value);
+    if (tables.length === 0) {
+        alert('Lütfen en az bir tablo seçin');
+        return;
+    }
+    const format = form.querySelector('input[name="format"]:checked').value;
+    const url = `/export.php?tables=${tables.join(',')}&format=${format}`;
+    window.open(url, '_blank');
+}
+
+async function toggleEventArchive(id, archive) {
+    try {
+        const response = await fetch('/api/events.php', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, is_archived: archive })
+        });
+        const result = await response.json();
+        if (result.success) {
+            loadEventsData();
+            loadArchivedData();
+            showNotification(archive ? 'Etkinlik arşivlendi' : 'Etkinlik arşivden çıkarıldı', 'success');
+        }
+    } catch (err) {
+        console.error('Event archive error', err);
+    }
+}
+
+async function toggleProjectArchive(id, archive) {
+    try {
+        const response = await fetch('/api/projects.php', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, is_archived: archive })
+        });
+        const result = await response.json();
+        if (result.success) {
+            loadProjectsData();
+            loadArchivedData();
+            showNotification(archive ? 'Proje arşivlendi' : 'Proje arşivden çıkarıldı', 'success');
+        }
+    } catch (err) {
+        console.error('Project archive error', err);
+    }
+}
+
+async function loadArchivedData() {
+    try {
+        const [eventsRes, projectsRes] = await Promise.all([
+            fetch('/api/events.php?archived=1'),
+            fetch('/api/projects.php?archived=1')
+        ]);
+        const eventsData = await eventsRes.json();
+        const projectsData = await projectsRes.json();
+        renderArchivedList('archived-events', eventsData.events || [], 'event');
+        renderArchivedList('archived-projects', projectsData.projects || [], 'project');
+    } catch (err) {
+        console.error('Load archived data error', err);
+    }
+}
+
+function renderArchivedList(id, items, type) {
+    const container = document.getElementById(id);
+    if (!container) return;
+    if (!items || items.length === 0) {
+        container.innerHTML = '<div class="empty-state">Kayıt bulunamadı.</div>';
+        return;
+    }
+    container.innerHTML = items.map(item => `
+        <div class="archived-item">
+            <span>${item.title}</span>
+            <button class="btn btn-sm" onclick="${type === 'event' ? `toggleEventArchive(${item.id}, 0)` : `toggleProjectArchive(${item.id}, 0)`}">Arşivden Çıkar</button>
+        </div>
+    `).join('');
+}
+
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('archive-tab')) {
+        const section = document.getElementById('reports');
+        section.querySelectorAll('.archive-tab').forEach(tab => tab.classList.remove('active'));
+        e.target.classList.add('active');
+        section.querySelectorAll('.archive-content').forEach(c => c.classList.remove('active'));
+        const target = e.target.dataset.target;
+        const content = document.getElementById(target);
+        if (content) {
+            content.classList.add('active');
+            if (target === 'reports-archived') {
+                loadArchivedData();
+            }
+        }
+    }
+});
