@@ -18,4 +18,19 @@ function logActivity($userId, $action, $table = null, $recordId = null, $oldValu
         // Hata durumunda loglama işlemini yut
     }
 }
+
+function logLoginAttempt($userId, $email, $status) {
+    try {
+        $db = Database::getInstance();
+        $db->insert('login_logs', [
+            'user_id' => $userId,
+            'email' => $email,
+            'status' => $status,
+            'ip_address' => $_SERVER['REMOTE_ADDR'] ?? null,
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null
+        ]);
+    } catch (Exception $e) {
+        // Hata durumunda loglama işlemini yut
+    }
+}
 ?>
