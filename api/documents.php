@@ -8,11 +8,23 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 try {
     $db = Database::getInstance();
+    if (!isset($_SESSION['user_id'])) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'error' => 'Authentication required']);
+        exit;
+    }
+    $currentUser = $db->fetch('SELECT role FROM users WHERE id = :id', ['id' => $_SESSION['user_id']]);
+    if (!$currentUser || $currentUser['role'] === 'misafir') {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'error' => 'Permission denied']);
+        exit;
+    }
 
     if ($method === 'GET') {
         $category = $_GET['category'] ?? null;
         $status = $_GET['status'] ?? null;
-        $role = $_GET['role'] ?? null;
+        $role = $currentUser['role'];
+
 
         $where = [];
         $params = [];
