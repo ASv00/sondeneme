@@ -442,6 +442,21 @@ function createDatabaseTables() {
                 FOREIGN KEY (user_id) REFERENCES users(id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ",
+        
+        // Giriş denemesi logları
+        'login_logs' => "
+            CREATE TABLE IF NOT EXISTS login_logs (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT,
+                email VARCHAR(255) NOT NULL,
+                ip_address VARCHAR(45),
+                user_agent TEXT,
+                status ENUM('success', 'failure') NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ",
+
 
         // Davet kodları
         'invite_codes' => "
