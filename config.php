@@ -17,6 +17,7 @@ define('APP_NAME', 'SUBÜ ASTO Yönetim Sistemi');
 define('APP_URL', getenv('APP_URL') ?: 'http://localhost:8000');
 define('APP_VERSION', '1.0.0');
 define('APP_TIMEZONE', 'Europe/Istanbul');
+define('CORPORATE_DOMAIN', 'subuasto.edu.tr');
 define('ORGANIZATION_NAME', 'Sakarya Büyükşehir Belediyesi Astronomi Topluluğu');
 define('ORGANIZATION_SHORT_NAME', 'SUBÜ ASTO');
 define('ORGANIZATION_ADDRESS', 'Sakarya Büyükşehir Belediyesi, Sakarya');
@@ -52,6 +53,7 @@ define('SMTP_USERNAME', 'noreply@subuasto.edu.tr');
 define('SMTP_PASSWORD', 'your-app-password');
 define('SMTP_FROM_EMAIL', 'noreply@subuasto.edu.tr');
 define('SMTP_FROM_NAME', 'SUBÜ ASTO');
+define('EMAIL_TEMPLATE_PATH', __DIR__ . '/emails/');
 
 // E-posta Şablonları
 define('EMAIL_TEMPLATES', [
@@ -70,6 +72,10 @@ define('EMAIL_TEMPLATES', [
     'event_reminder' => [
         'subject' => 'Etkinlik Hatırlatması',
         'template' => 'event_reminder_email.html'
+    ],
+    'login_alert' => [
+        'subject' => 'Yeni Giriş Bildirimi',
+        'template' => 'login_alert.html'
     ]
 ]);
 
