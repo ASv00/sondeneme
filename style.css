@@ -3515,4 +3515,28 @@ body {
     .item-actions {
         margin-top: 10px;
     }
+    }
+
+/* Notification list */
+.notification-list {
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    width: 300px;
+    z-index: 1000;
+}
+
+.notification-item {
+    background: #fff;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+.notification-item a {
+    display: block;
+    margin-top: 5px;
+    color: #007bff;
+}
 }
