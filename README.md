@@ -66,17 +66,31 @@ GRANT ALL PRIVILEGES ON subu_asto_db.* TO 'subu_user'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
-3. **Veritabanı ayarlarını yapılandırın:**
+33. **Yerel konfigürasyon dosyası oluşturun (.env veya `local_config.php`):**
 
-`config.php` dosyasında veritabanı bağlantı bilgilerini güncelleyin:
+Bu proje yerel ayarlar için `.replit` dosyasına ihtiyaç duymaz. Aşağıdaki yöntemlerden birini kullanarak MySQL bağlantısı ve uygulama ayarlarınızı belirleyebilirsiniz:
+
+- `local_config_example.php` dosyasını `local_config.php` olarak kopyalayın ve düzenleyin:
 
 ```php
-// Veritabanı Konfigürasyonu
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'subu_asto_db');
-define('DB_USER', 'subu_user');
-define('DB_PASS', 'guvenli_sifre');
-define('DB_CHARSET', 'utf8mb4');
+<?php
+$_ENV['DB_HOST'] = 'localhost';
+$_ENV['DB_NAME'] = 'subu_asto_db';
+$_ENV['DB_USER'] = 'subu_user';
+$_ENV['DB_PASS'] = 'guvenli_sifre';
+$_ENV['APP_URL'] = 'http://localhost:8000';
+$_ENV['DEBUG_MODE'] = 'true';
+```
+
+- veya bir `.env` dosyası oluşturun:
+
+```env
+DB_HOST=localhost
+DB_NAME=subu_asto_db
+DB_USER=subu_user
+DB_PASS=guvenli_sifre
+APP_URL=http://localhost:8000
+DEBUG_MODE=true
 ```
 
 4. **Güvenlik ayarlarını yapın:**
