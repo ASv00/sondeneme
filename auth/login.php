@@ -5,6 +5,8 @@ require_once __DIR__ . '/../lib/activity_log.php';
 require_once __DIR__ . '/../lib/totp.php';
 require_once __DIR__ . '/../lib/email.php';
 
+session_start();
+
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
