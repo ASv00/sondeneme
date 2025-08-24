@@ -2,6 +2,8 @@
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../lib/activity_log.php';
 
+session_start();
+
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['user_id'])) {
