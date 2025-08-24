@@ -2,11 +2,19 @@
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../database.php';
 
+session_start();
+
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode(['success' => false, 'error' => 'Method Not Allowed']);
+    exit;
+}
+
+if (!isset($_SESSION['user_id'])) {
+    http_response_code(401);
+    echo json_encode(['success' => false, 'error' => 'Authentication required']);
     exit;
 }
 
@@ -97,7 +105,7 @@ $data = [
     'color_mode' => $colorMode,
     'version' => $version,
     'previous_version_id' => $previousVersionId,
-    'uploaded_by' => $_SESSION['user_id'] ?? 1,
+    'uploaded_by' => $_SESSION['user_id'],
     'icc_profile_preserved' => $iccPreserved
 ];
 
